@@ -29,7 +29,7 @@
 5. **Admin Dashboard**
    - Manage users, profiles, and monitor activities.
 
-
+### Future Implementation If Possible
 
 6. **Messaging**
    - In-app messaging system for communication between users.
@@ -196,6 +196,8 @@
 - **UserId**: int
 - **ViewedUserId**: int
 - **ViewTime**: DateTime
+
+### Future Implementation If Possible
 
 ### Messages
 - **Id**: int (Primary Key)
