@@ -4,6 +4,9 @@ namespace AuthService.Models.DTOs
 {
     public class UserRegisterDTO
     {
+        [Required(ErrorMessage = "OnBehalfof is Required")]
+        public string OnBehalfOf { get; set; }
+
         [Required(ErrorMessage = "FirstName is required.")]
         [StringLength(50, MinimumLength = 1, ErrorMessage = "Name must be between 1 and 50 characters.")]
         public string FirstName { get; set; }
@@ -24,5 +27,11 @@ namespace AuthService.Models.DTOs
         [Required(ErrorMessage = "Password is required.")]
         [StringLength(50, MinimumLength = 6, ErrorMessage = "Password must be between 6 and 50 characters.")]
         public string Password { get; set; }
+
+        [Required(ErrorMessage = "Gender is Required")]
+        public string Gender { get; set; }
+
+        [Required(ErrorMessage = "DOB is Required")]
+        public DateTime DOB { get; set; }
     }
 }

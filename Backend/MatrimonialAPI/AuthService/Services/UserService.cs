@@ -12,11 +12,13 @@ namespace AuthService.Services
         private readonly IRepository<int, User> _userrepo;
         private readonly IRepository<int, UserDetails> _userdetailrepo;
         private readonly ITokenService _tokenService;
-        public UserService(IRepository<int, User> userrepo, IRepository<int, UserDetails> userdetail, ITokenService tokenservice)
+        private readonly HttpClient _httpClient;
+        public UserService(IRepository<int, User> userrepo, IRepository<int, UserDetails> userdetail, ITokenService tokenservice, HttpClient httpClient)
         {
             _userrepo = userrepo;
             _userdetailrepo = userdetail;
             _tokenService = tokenservice;
+            _httpClient = httpClient;
         }
 
         // GetAllUsers
@@ -114,20 +116,40 @@ namespace AuthService.Services
                 {
                     throw new UserAlreadyExistException("User Account Already Exists, Please Login!");
                 }
+
+                user = MapUserDTOToUser(userDTO);
+                userdetails = MapUserDTOToUserDetail(userDTO);
+                user = await _userrepo.Add(user);
+                userdetails.UserId = user.Id;
+                userdetails = await _userdetailrepo.Add(userdetails);
+
+                var response = await _httpClient.PostAsJsonAsync("https://localhost:7002/api/CreateProfile", new RegisterUserProfileDTO()
+                {
+                    FirstName = userDTO.FirstName,
+                    LastName = userDTO.LastName,
+                    ProfileFor = userDTO.OnBehalfOf,
+                    UserId = user.Id,
+                    DOB = userDTO.DOB,
+                    Gender = userDTO.Gender
+                });
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    await _userdetailrepo.Delete(userdetails);
+                    await _userrepo.Delete(user);
+                    throw new Exception("Failed to create profile. Status code: " + response.StatusCode);
+                }
+
+                ReturnDTO returnDTO = await Login(new UserLoginDTO() { Email = user.Email, Password = userDTO.Password });
+                return returnDTO;
             }
             catch (Exception ex)
             {
-                if (ex is not ObjectsNotFoundException)
-                    throw ex;
+                Console.WriteLine($"Registration failed for user: {userDTO.Email}. Exception: {ex}");
+                throw ex;
             }
-            user = MapUserDTOToUser(userDTO);
-            userdetails = MapUserDTOToUserDetail(userDTO);
-            user = await _userrepo.Add(user);
-            userdetails.UserId = user.Id;
-            userdetails = await _userdetailrepo.Add(userdetails);
-            ReturnDTO returnDTO = await Login(new UserLoginDTO() { Email = user.Email, Password = userDTO.Password});
-            return returnDTO;
         }
+
 
         //UpdateUserRole
         public async Task<string> UpdateUserRole(int userId, string role)
