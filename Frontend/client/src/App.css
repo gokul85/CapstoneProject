@@ -8,8 +8,21 @@
     color: #FD2C79 !important;
 }
 
+.bg-primary {
+    background-color: #FD2C79 !important;
+}
+
 .btn-primary {
     background: #FD2C79 !important;
     outline: none;
     border: none;
+}
+
+.page-item.active .page-link {
+    background-color: #FD2C79;
+    border: #FD2C79;
+}
+
+.page-link {
+    color: #FD2C79;
 }

@@ -17,6 +17,12 @@ namespace APIGateway
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAllOrigins", builder => builder.AllowAnyOrigin().AllowAnyHeader()
+                                  .AllowAnyMethod());
+            });
+
             // Add services to the container.
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -52,27 +58,11 @@ namespace APIGateway
 
             app.UseRouting();
 
+            app.UseCors("AllowAllOrigins");
+
             app.UseAuthentication();
             app.UseAuthorization();
 
-            // Set up a logger instance
-            var loggerFactory = LoggerFactory.Create(loggingBuilder =>
-            {
-                loggingBuilder.AddConsole();
-                loggingBuilder.AddDebug();
-            });
-
-            var logger = loggerFactory.CreateLogger<Program>();
-
-            app.Use(async (context, next) =>
-            {
-                var userClaims = context.User.Claims;
-                foreach (var claim in userClaims)
-                {
-                    logger.LogInformation($"Claim Type: {claim.Type}, Claim Value: {claim.Value}");
-                }
-                await next.Invoke();
-            });
 
             app.UseOcelot().Wait();
 

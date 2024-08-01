@@ -17,13 +17,14 @@ namespace AuthService.Services
             _secretKey = configuration.GetSection("TokenKey").GetSection("JWT").Value.ToString();
             _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
         }
-        public string GenerateToken(User user)
+        public string GenerateToken(User user, bool isPremium)
         {
             string token = string.Empty;
             var claims = new List<Claim>(){
                 new Claim("uid",user.Id.ToString()),
                 new Claim(ClaimTypes.Role,user.Role),
-                new Claim("scope",user.Role)
+                new Claim("scope",user.Role),
+                new Claim("isPremium", isPremium.ToString()),
             };
             var credentials = new SigningCredentials(_key, SecurityAlgorithms.HmacSha256);
             var myToken = new JwtSecurityToken(null, null, claims, expires: DateTime.Now.AddDays(2), signingCredentials: credentials);

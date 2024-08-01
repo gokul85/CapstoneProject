@@ -1,10 +1,20 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import Header from "../Home/Header"
+import axiosInstance from "../../Utils/axiosInstance"
+import { toast } from "react-toastify"
 
 const Login = () => {
+
+    useEffect(() => {
+        var token = localStorage.getItem("token");
+        if (token != null) {
+            navigate("/search")
+        }
+    })
+
     const [formData, setFormData] = useState({
         email: "",
         password: ""
@@ -33,15 +43,17 @@ const Login = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (validate()) {
-            axios.post('your-backend-api-url/login', formData)
+            axiosInstance.post("/user/login", formData)
                 .then(response => {
-                    console.log(response.data);
-                    // handle success
-                    navigate("/dashboard"); // redirect to dashboard or another page
+                    localStorage.setItem("token", response.data.token);
+                    if (response.data.profilestatus === false) {
+                        toast.warn("Please Complete your profile");
+                        navigate("/addprofile");
+                    }
+                    navigate("/search");
                 })
                 .catch(error => {
-                    console.error(error);
-                    // handle error
+                    toast.error(error.response.data.errorMessage);
                 });
         }
     };
@@ -53,7 +65,7 @@ const Login = () => {
             .then(res => {
                 console.log(res.data);
                 // handle success
-                navigate("/dashboard"); // redirect to dashboard or another page
+                navigate("/dashboard");
             })
             .catch(err => {
                 console.error(err);

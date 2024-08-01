@@ -1,15 +1,10 @@
-.search-page {
-    display: flex;
-    flex-wrap: nowrap;
-    height: 100vh;
-}
-
 .toggle-button {
     display: none;
     position: absolute;
-    top: 10px;
+    top: 60px;
     left: 10px;
     z-index: 10;
+    width: 40px;
 }
 
 .sidebar {
@@ -29,7 +24,7 @@
 }
 
 .scrollable {
-    max-height: calc(100vh - 100px);
+    max-height: calc(100vh - 150px);
     overflow-y: auto;
 }
 
@@ -46,7 +41,7 @@
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 920px) {
     .sidebar {
         position: fixed;
         top: 0;

@@ -1,3 +1,4 @@
+using AuthService.AsyncDataService;
 using AuthService.Data;
 using AuthService.Interfaces;
 using AuthService.Models;
@@ -73,6 +74,8 @@ namespace AuthService
             #region service
             builder.Services.AddScoped<ITokenService, TokenService>();
             builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddSingleton<RabbitMQConsumer>();
+            builder.Services.AddHostedService(sp => sp.GetRequiredService<RabbitMQConsumer>());
             #endregion
 
             var app = builder.Build();

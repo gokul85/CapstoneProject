@@ -4,8 +4,8 @@ namespace AuthService.Models.DTOs
 {
     public class UserRegisterDTO
     {
-        [Required(ErrorMessage = "OnBehalfof is Required")]
-        public string OnBehalfOf { get; set; }
+        [Required(ErrorMessage = "OnBehalf is Required")]
+        public string OnBehalf { get; set; }
 
         [Required(ErrorMessage = "FirstName is required.")]
         [StringLength(50, MinimumLength = 1, ErrorMessage = "Name must be between 1 and 50 characters.")]

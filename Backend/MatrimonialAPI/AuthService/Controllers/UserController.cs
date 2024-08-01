@@ -172,5 +172,73 @@ namespace AuthService.Controllers
                 return NotFound(new ErrorModel(400, ex.Message));
             }
         }
+
+        [Authorize]
+        [HttpPost("VerifyProfileStatus")]
+        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorModel), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<bool>> VerifyProfileStatus()
+        {
+            try
+            {
+                var userid = int.Parse(User.FindFirstValue("uid"));
+                var result = _userService.VerifyUserProfileStatus(userid);
+                return Ok(result);
+            }
+            catch (NoUserFoundException ex)
+            {
+                return NotFound(new ErrorModel(400, ex.Message));
+            }
+        }
+
+        [HttpPost("UpdateUserProfileStatus")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorModel), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<string>> UpdateUserProfileStatus([FromBody] ProfileCompletedMessageDTO profileCompletedMessageDTO)
+        {
+            try
+            {
+                var result = await _userService.UpdateUserProfileStatus(profileCompletedMessageDTO.UserId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ErrorModel(400, ex.Message));
+            }
+        }
+
+        [HttpPost("UpdateUserPremiumStatus")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorModel), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<string>> UpdateUserPremiumStatus([FromBody] PaymentCompletedMessageDTO paymentCompletedMessageDTO)
+        {
+            try
+            {
+                var result = await _userService.UpdateUserPremiumStatus(paymentCompletedMessageDTO.UserId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ErrorModel(400, ex.Message));
+            }
+        }
+
+        [Authorize]
+        [HttpGet("RefreshToken")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorModel), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<string>> RefreshToken()
+        {
+            try
+            {
+                var userid = int.Parse(User.FindFirstValue("uid"));
+                var result = await _userService.RefreshUserToken(userid);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ErrorModel(400, ex.Message));
+            }
+        }
     }
 }

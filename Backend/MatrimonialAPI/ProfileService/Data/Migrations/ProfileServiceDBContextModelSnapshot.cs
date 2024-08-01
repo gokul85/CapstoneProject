@@ -64,6 +64,10 @@ namespace ProfileService.Migrations
                     b.Property<DateTime>("DOB")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -86,6 +90,10 @@ namespace ProfileService.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NativeLanguage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Religion")
@@ -209,6 +217,61 @@ namespace ProfileService.Migrations
                     b.ToTable("Lifestyles");
                 });
 
+            modelBuilder.Entity("ProfileService.Models.PartnerPreference", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Complexion")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("DrinkAcceptable")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MaritalStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MaxHeight")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaxWeight")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinHeight")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinWeight")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MinimumQualification")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Religion")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("SmokeAcceptable")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PartnerPreferences");
+                });
+
             modelBuilder.Entity("ProfileService.Models.PhysicalAttributes", b =>
                 {
                     b.Property<int>("Id")
@@ -248,6 +311,31 @@ namespace ProfileService.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("PhysicalAttributes");
+                });
+
+            modelBuilder.Entity("ProfileService.Models.ProfileImages", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Image")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UploadDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserProfileId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserProfileId");
+
+                    b.ToTable("ProfileImages");
                 });
 
             modelBuilder.Entity("ProfileService.Models.UserProfile", b =>
@@ -307,6 +395,10 @@ namespace ProfileService.Migrations
                         .IsUnique()
                         .HasFilter("[LifeStyleId] IS NOT NULL");
 
+                    b.HasIndex("PartnerPreId")
+                        .IsUnique()
+                        .HasFilter("[PartnerPreId] IS NOT NULL");
+
                     b.HasIndex("PhysicalAttrId")
                         .IsUnique()
                         .HasFilter("[PhysicalAttrId] IS NOT NULL");
@@ -336,6 +428,17 @@ namespace ProfileService.Migrations
                     b.Navigation("UserProfile");
                 });
 
+            modelBuilder.Entity("ProfileService.Models.ProfileImages", b =>
+                {
+                    b.HasOne("ProfileService.Models.UserProfile", "UserProfile")
+                        .WithMany("GallaryImages")
+                        .HasForeignKey("UserProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("UserProfile");
+                });
+
             modelBuilder.Entity("ProfileService.Models.UserProfile", b =>
                 {
                     b.HasOne("ProfileService.Models.Address", "Address")
@@ -356,6 +459,10 @@ namespace ProfileService.Migrations
                         .WithOne()
                         .HasForeignKey("ProfileService.Models.UserProfile", "LifeStyleId");
 
+                    b.HasOne("ProfileService.Models.PartnerPreference", "PartnerPref")
+                        .WithOne()
+                        .HasForeignKey("ProfileService.Models.UserProfile", "PartnerPreId");
+
                     b.HasOne("ProfileService.Models.PhysicalAttributes", "PhysicalAttribute")
                         .WithOne()
                         .HasForeignKey("ProfileService.Models.UserProfile", "PhysicalAttrId");
@@ -368,6 +475,8 @@ namespace ProfileService.Migrations
 
                     b.Navigation("LifeStyle");
 
+                    b.Navigation("PartnerPref");
+
                     b.Navigation("PhysicalAttribute");
                 });
 
@@ -376,6 +485,8 @@ namespace ProfileService.Migrations
                     b.Navigation("Careers");
 
                     b.Navigation("Educations");
+
+                    b.Navigation("GallaryImages");
                 });
 #pragma warning restore 612, 618
         }

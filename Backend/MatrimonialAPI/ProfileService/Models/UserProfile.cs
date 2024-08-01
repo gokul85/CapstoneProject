@@ -13,6 +13,7 @@
         public int? PhysicalAttrId { get; set; }
         public FamilyInfo FamilyInfo { get; set; }
         public int? FamilyInfoId { get; set; }
+        public PartnerPreference PartnerPref { get; set; }
         public int? PartnerPreId { get; set; }
         public Lifestyle LifeStyle { get; set; }
         public int? LifeStyleId { get; set; }
@@ -20,5 +21,6 @@
         public bool ProfileCompleted { get; set; }
         public ICollection<Educations> Educations { get; set; }
         public ICollection<Careers> Careers { get; set; }
+        public ICollection<ProfileImages> GallaryImages { get; set; }
     }
 }

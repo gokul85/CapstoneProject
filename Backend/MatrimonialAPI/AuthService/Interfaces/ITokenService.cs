@@ -4,6 +4,6 @@ namespace AuthService.Interfaces
 {
     public interface ITokenService
     {
-        public string GenerateToken(User user);
+        public string GenerateToken(User user, bool isPremium);
     }
 }

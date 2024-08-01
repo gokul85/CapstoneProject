@@ -49,7 +49,8 @@ namespace AuthService.Services
             returnDTO.Name = user.FirstName;
             returnDTO.Email = user.Email;
             returnDTO.Role = user.Role ?? "User";
-            returnDTO.Token = _tokenService.GenerateToken(user);
+            returnDTO.Token = _tokenService.GenerateToken(user, userDB.IsPremium);
+            returnDTO.ProfileStatus = userDB.ProfileCompleted;
             return returnDTO;
         }
 
@@ -96,11 +97,12 @@ namespace AuthService.Services
         private UserDetails MapUserDTOToUserDetail(UserRegisterDTO userDTO)
         {
             UserDetails userdetail = new UserDetails();
-            userdetail.Status = "Disabled";
+            userdetail.Status = "Active";
             HMACSHA512 hMACSHA = new HMACSHA512();
             userdetail.PasswordHashKey = hMACSHA.Key;
             userdetail.Password = hMACSHA.ComputeHash(Encoding.UTF8.GetBytes(userDTO.Password));
             userdetail.IsPremium = false;
+            userdetail.ProfileCompleted = false;
             return userdetail;
         }
 
@@ -123,21 +125,23 @@ namespace AuthService.Services
                 userdetails.UserId = user.Id;
                 userdetails = await _userdetailrepo.Add(userdetails);
 
-                var response = await _httpClient.PostAsJsonAsync("https://localhost:7002/api/CreateProfile", new RegisterUserProfileDTO()
+                var response = await _httpClient.PostAsJsonAsync("https://localhost:7000/api/profile/CreateProfile", new RegisterUserProfileDTO()
                 {
                     FirstName = userDTO.FirstName,
                     LastName = userDTO.LastName,
-                    ProfileFor = userDTO.OnBehalfOf,
+                    ProfileFor = userDTO.OnBehalf,
                     UserId = user.Id,
                     DOB = userDTO.DOB,
-                    Gender = userDTO.Gender
+                    Gender = userDTO.Gender,
+                    Email = userDTO.Email,
+                    Phone = userDTO.Phone,
                 });
 
                 if (!response.IsSuccessStatusCode)
                 {
                     await _userdetailrepo.Delete(userdetails);
                     await _userrepo.Delete(user);
-                    throw new Exception("Failed to create profile. Status code: " + response.StatusCode);
+                    throw new Exception("Failed to create profile. Status: " + response.StatusCode);
                 }
 
                 ReturnDTO returnDTO = await Login(new UserLoginDTO() { Email = user.Email, Password = userDTO.Password });
@@ -175,6 +179,40 @@ namespace AuthService.Services
             ud.Status = updateuserstatusDTO.Status;
             await _userdetailrepo.Update(ud);
             return "User Status Successfully Updated";
+        }
+
+        //VerifyUserProfileStatus
+        public async Task<bool> VerifyUserProfileStatus(int userId)
+        {
+            var userdetail = (await _userdetailrepo.FindAll(ud => ud.UserId == userId)).FirstOrDefault();
+            return userdetail.ProfileCompleted;
+        }
+
+        //UpdateUserProfileStatus
+        public async Task<string> UpdateUserProfileStatus(int userid)
+        {
+            var userdetail = (await _userdetailrepo.FindAll(ud => ud.UserId == userid)).FirstOrDefault();
+            userdetail.ProfileCompleted = true;
+            userdetail = await _userdetailrepo.Update(userdetail);
+            return "Updated";
+        }
+
+        //UpdateUserPremiumStatus
+        public async Task<string> UpdateUserPremiumStatus(int userid)
+        {
+            var userdetail = (await _userdetailrepo.FindAll(ud => ud.UserId == userid)).FirstOrDefault();
+            userdetail.IsPremium = true;
+            userdetail = await _userdetailrepo.Update(userdetail);
+            return "Updated";
+        }
+
+        // RefreshUserToken
+        public async Task<string> RefreshUserToken(int userid)
+        {
+            var userdetail = (await _userdetailrepo.FindAll(ud => ud.UserId == userid)).FirstOrDefault();
+            var user = await _userrepo.Get(userid);
+            string token = _tokenService.GenerateToken(user, userdetail.IsPremium);
+            return token;
         }
     }
 }

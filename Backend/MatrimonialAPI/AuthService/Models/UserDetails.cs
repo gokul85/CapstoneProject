@@ -15,5 +15,7 @@ namespace AuthService.Models
         public string Status { get; set; }
         [Required]
         public bool IsPremium { get; set; }
+        [Required]
+        public bool ProfileCompleted { get; set; }
     }
 }

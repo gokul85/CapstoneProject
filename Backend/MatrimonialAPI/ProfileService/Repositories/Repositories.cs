@@ -58,4 +58,18 @@ namespace ProfileService.Repositories
         {
         }
     }
+
+    public class PartnerPreferenceRepository : BaseRepository<int, PartnerPreference>
+    {
+        public PartnerPreferenceRepository(ProfileServiceDBContext context) : base(context)
+        {
+        }
+    }
+
+    public class ProfileImagesRepository : BaseRepository<int, ProfileImages>
+    {
+        public ProfileImagesRepository(ProfileServiceDBContext context) : base(context)
+        {
+        }
+    }
 }

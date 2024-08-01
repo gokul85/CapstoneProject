@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ProfileService.AsyncDataServices;
 using ProfileService.Interfaces;
 using ProfileService.Models.DTOs;
 using System.Security.Claims;
@@ -11,10 +12,12 @@ namespace ProfileService.Controllers
     {
         private readonly IProfileService _profileService;
         private readonly ILogger<UserProfileController> _logger;
-        public UserProfileController(IProfileService profileService, ILogger<UserProfileController> logger)
+        private readonly RabbitMQPublisher _rabbitMQPublisher;
+        public UserProfileController(IProfileService profileService, ILogger<UserProfileController> logger, RabbitMQPublisher rabbitMQPublisher)
         {
             _profileService = profileService;
             _logger = logger;
+            _rabbitMQPublisher = rabbitMQPublisher;
         }
 
         /// <summary>
@@ -25,7 +28,7 @@ namespace ProfileService.Controllers
         [HttpPost("CreateProfile")]
         [ProducesResponseType(typeof(ResponseModel), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<ResponseModel>> Register([FromBody] RegisterUserProfileDTO profiledto)
+        public async Task<ActionResult<ResponseModel>> CreateProfile([FromBody] RegisterUserProfileDTO profiledto)
         {
             try
             {
@@ -48,14 +51,10 @@ namespace ProfileService.Controllers
         [HttpPost("AddProfile")]
         [ProducesResponseType(typeof(ResponseModel), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<ResponseModel>> Register([FromBody] AddUserProfileDTO addprofiledto)
+        public async Task<ActionResult<ResponseModel>> AddProfile([FromForm] AddUserProfileDTO addprofiledto)
         {
             try
             {
-                foreach (var header in HttpContext.Request.Headers)
-                {
-                    _logger.LogInformation($"Header: {header.Key}, Value: {header.Value}");
-                }
                 if (HttpContext.Request.Headers.TryGetValue("UserId", out var userIdHeader))
                 {
                     int userId = int.Parse(userIdHeader.FirstOrDefault());
@@ -66,13 +65,30 @@ namespace ProfileService.Controllers
                 else
                 {
                     _logger.LogWarning("UserId claim is missing in the request headers.");
-                    return BadRequest(new ResponseModel { HasError=true,ErrorMessage = "UserId claim is missing." });
+                    return BadRequest(new ResponseModel { HasError = true, ErrorMessage = "UserId claim is missing." });
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Add Profile For the User {UserID}", addprofiledto.UserId);
-                return BadRequest(new ResponseModel());
+                return BadRequest(new ResponseModel() { HasError=true,ErrorMessage=ex.Message});
+            }
+        }
+
+        [HttpGet("GetUserContactDetails")]
+        [ProducesResponseType(typeof(ResponseModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseModel), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ResponseModel>> GetUserContactDetails(int id)
+        {
+            try
+            {
+                ResponseModel result = await _profileService.GetUserContactDetails(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "View Contact Details Error for User Profile ", id);
+                return BadRequest(new ResponseModel() { HasError = true, ErrorMessage = ex.Message });
             }
         }
     }

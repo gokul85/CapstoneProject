@@ -1,8 +1,16 @@
 import React from 'react';
 import RegistrationForm from "../Home/RegistrationForm"
 import Header from "../Home/Header"
+import { useEffect, useNavigate } from 'react';
 
 const Register = () => {
+    const navigate = useNavigate()
+    useEffect(() => {
+        var token = localStorage.getItem("token");
+        if (token !== "" || !token) {
+            navigate("/search")
+        }
+    })
 
     return (
         <>

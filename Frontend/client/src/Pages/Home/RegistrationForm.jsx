@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { GoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
+import axiosInstance from "../../Utils/axiosInstance"
+import { toast } from "react-toastify"
 
 const RegistrationForm = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
-        onBehalf: "self",
+        onBehalf: "Self",
         firstName: "",
         lastName: "",
-        gender: "male",
+        gender: "Male",
         dob: "",
         email: "",
         phone: "",
@@ -21,10 +22,10 @@ const RegistrationForm = () => {
     const handleGoogleLoginSuccess = async (response) => {
         console.log("Google login successful", response);
         const profile = response.profileObj;
-
+        console.log(profile);
         try {
-            await axios.post('https://your-backend-api-url/google-login', profile);
-            navigate('/welcome');  // Redirect to a welcome or appropriate page
+            await axiosInstance.post('https://your-backend-api-url/google-login', profile);
+            navigate('/welcome');
         } catch (error) {
             console.error(error);
         }
@@ -36,32 +37,34 @@ const RegistrationForm = () => {
 
     const handleChange = (e) => {
         const { id, value } = e.target;
-        setFormData({
-            ...formData,
-            [id]: value
+        setFormData((prevFormData) => {
+            let newGender = prevFormData.gender;
+            if (id === "onBehalf") {
+                newGender = getGender(value);
+            }
+            return {
+                ...prevFormData,
+                [id]: value,
+                ...(id === "onBehalf" && { gender: newGender })
+            };
         });
-
-        if (id === "onBehalf") {
-            setFormData({
-                ...formData,
-                gender: getGender(value)
-            });
-        }
     };
 
     const getGender = (onBehalf) => {
         switch (onBehalf) {
-            case "self":
-            case "brother":
-            case "son":
-                return "male";
-            case "sister":
-            case "daughter":
-                return "female";
+            case "Self":
+            case "Brother":
+            case "Son":
+            case "Friend":
+                return "Male";
+            case "Sister":
+            case "Daughter":
+                return "Female";
             default:
-                return "";
+                return "Male";
         }
     };
+
 
     const validate = () => {
         const newErrors = {};
@@ -81,11 +84,13 @@ const RegistrationForm = () => {
         e.preventDefault();
         if (validate()) {
             try {
-                await axios.post('https://your-backend-api-url/register', formData);
-                // Handle success (e.g., redirect or show success message)
+                var response = await axiosInstance.post("/user/register", formData);
+                localStorage.setItem("token", response.data.token);
+                toast.success("User Registration Successful")
+                toast.success("Please complete your profile")
+                navigate("/addprofile");
             } catch (error) {
-                console.error(error);
-                // Handle error
+                toast.error(error.response.data.errorMessage);
             }
         }
     };
@@ -102,12 +107,12 @@ const RegistrationForm = () => {
                         value={formData.onBehalf}
                         onChange={handleChange}
                     >
-                        <option value="self">Self</option>
-                        <option value="brother">Brother</option>
-                        <option value="sister">Sister</option>
-                        <option value="friend">Friend</option>
-                        <option value="daughter">Daughter</option>
-                        <option value="son">Son</option>
+                        <option value="Self">Self</option>
+                        <option value="Brother">Brother</option>
+                        <option value="Sister">Sister</option>
+                        <option value="Friend">Friend</option>
+                        <option value="Daughter">Daughter</option>
+                        <option value="Son">Son</option>
                     </select>
                 </div>
                 <div className="form-group mb-3">
@@ -128,11 +133,12 @@ const RegistrationForm = () => {
                     <div className="row">
                         <div className="col">
                             <label htmlFor="gender">Gender</label>
-                            <select className="form-control" id="gender" value={formData.gender} readOnly>
-                                <option value="male">Male</option>
-                                <option value="female">Female</option>
+                            <select className="form-control" id="gender" value={formData.gender} onChange={handleChange}>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
                             </select>
                         </div>
+
                         <div className="col">
                             <label htmlFor="dob">Date of Birth</label>
                             <input type="date" className="form-control" id="dob" value={formData.dob} onChange={handleChange} />

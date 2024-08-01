@@ -15,6 +15,8 @@ namespace ProfileService.Data
         public DbSet<PhysicalAttributes> PhysicalAttributes { get; set; }
         public DbSet<Educations> Educations { get; set; }
         public DbSet<Careers> Careers { get; set; }
+        public DbSet<PartnerPreference> PartnerPreferences { get; set; }
+        public DbSet<ProfileImages> ProfileImages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -42,10 +44,17 @@ namespace ProfileService.Data
                       .WithOne()
                       .HasForeignKey<UserProfile>(up => up.LifeStyleId)
                       .IsRequired(false);
+                entity.HasOne(up => up.PartnerPref)
+                      .WithOne()
+                      .HasForeignKey<UserProfile>(up => up.PartnerPreId)
+                      .IsRequired(false);
                 entity.HasMany(up => up.Educations)
                       .WithOne(e => e.UserProfile)
                       .HasForeignKey(e => e.UserProfileId);
                 entity.HasMany(up => up.Careers)
+                      .WithOne(c => c.UserProfile)
+                      .HasForeignKey(c => c.UserProfileId);
+                entity.HasMany(up => up.GallaryImages)
                       .WithOne(c => c.UserProfile)
                       .HasForeignKey(c => c.UserProfileId);
             });
@@ -80,6 +89,12 @@ namespace ProfileService.Data
                 entity.Property(pa => pa.Id).ValueGeneratedOnAdd();
             });
 
+            modelBuilder.Entity<PartnerPreference>(entity =>
+            {
+                entity.HasKey(pp => pp.Id);
+                entity.Property(pp => pp.Id).ValueGeneratedOnAdd();
+            });
+
             modelBuilder.Entity<Educations>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -95,6 +110,15 @@ namespace ProfileService.Data
                 entity.Property(c => c.Id).ValueGeneratedOnAdd();
                 entity.HasOne(c => c.UserProfile)
                       .WithMany(up => up.Careers)
+                      .HasForeignKey(c => c.UserProfileId);
+            });
+
+            modelBuilder.Entity<ProfileImages>(entity =>
+            {
+                entity.HasKey(pi => pi.Id);
+                entity.Property(pi => pi.Id).ValueGeneratedOnAdd();
+                entity.HasOne(pi => pi.UserProfile)
+                      .WithMany(up => up.GallaryImages)
                       .HasForeignKey(c => c.UserProfileId);
             });
         }

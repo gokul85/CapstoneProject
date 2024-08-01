@@ -31,6 +31,7 @@ namespace AuthService.Data
                 entity.Property(ud => ud.PasswordHashKey).IsRequired();
                 entity.Property(ud => ud.Status).IsRequired().HasMaxLength(50);
                 entity.Property(ud => ud.IsPremium).IsRequired();
+                entity.Property(ud => ud.ProfileCompleted).IsRequired();
 
                 entity.HasOne<User>()
                      .WithOne()

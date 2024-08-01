@@ -10,5 +10,7 @@ namespace AuthService.Models.DTOs
         public string LastName { get; set; }
         public string Gender { get; set; }
         public DateTime DOB { get; set; }
+        public string Email { get; set; }
+        public string Phone { get; set; }
     }
 }

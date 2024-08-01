@@ -1,14 +1,40 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { toast } from "react-toastify"
+import axiosInstance from "../../Utils/axiosInstance"
+import { useNavigate } from "react-router-dom"
 
 const AddProfileDetails = () => {
+
+    useEffect(() => {
+        const checkProfileStatus = async () => {
+            var token = localStorage.getItem("token");
+            if (token == null || token === "") {
+                navigate("/login");
+            } else {
+                try {
+                    var res = await axiosInstance.post("/user/verifyprofilestatus");
+                    if (res.data.result) {
+                        toast.warn("Profile Already Completed");
+                        navigate("/search");
+                    }
+                } catch (error) {
+                    console.error("Error verifying profile status:", error);
+                }
+            }
+        };
+
+        checkProfileStatus();
+    })
+
+    const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
         profileImage: '',
         bio: '',
         nativeLanguage: 'Tamil',
         maritalStatus: 'Single',
-        religion: 'Hinduism',
+        religion: 'Hindu',
         caste: '',
         highestQualification: '',
         addressLine: 'Test Address',
@@ -33,16 +59,30 @@ const AddProfileDetails = () => {
         education: [{
             degree: 'BE',
             specialization: 'CSE',
-            startYear: 2020,
-            endYear: 2024,
+            startYear: 2012,
+            endYear: 2016,
             status: 'Completed'
         }],
         career: [{
             designation: 'Associate Engineer',
             company: 'Test Company',
-            startYear: 2024,
+            startYear: 2016,
             endYear: null,
-        }]
+        }],
+        partnerPreferences: {
+            heightMin: 160,
+            heightMax: 170,
+            weightMin: 50,
+            weightMax: 60,
+            maritalStatus: 'Single',
+            religion: 'Hindu',
+            language: 'Tamil',
+            education: '',
+            smokeAcceptable: 'No',
+            drinkAcceptable: 'No',
+            state: 'Tamil Nadu',
+            complexion: 'Fair'
+        }
     });
 
     const handleEducationChange = (index, e) => {
@@ -100,7 +140,6 @@ const AddProfileDetails = () => {
         setFormData({ ...formData, career: updatedCareer });
     };
 
-
     const handleChange = (e) => {
         const { name, value, files } = e.target;
         setFormData({
@@ -116,10 +155,17 @@ const AddProfileDetails = () => {
             3: ['addressLine', 'city', 'state', 'pincode'],
             4: ['height', 'weight', 'eyeColor', 'hairColor', 'complexion', 'bloodGroup', 'disability'],
             5: ['father', 'mother', 'siblingsCount'],
-            6: ['drink', 'smoke']
+            6: ['drink', 'smoke'],
+            10: ['partnerPreferences.heightMin', 'partnerPreferences.heightMax', 'partnerPreferences.weightMin', 'partnerPreferences.weightMax', 'partnerPreferences.maritalStatus', 'partnerPreferences.religion', 'partnerPreferences.language', 'partnerPreferences.education', 'partnerPreferences.smokeAcceptable', 'partnerPreferences.drinkAcceptable', 'partnerPreferences.state', 'partnerPreferences.complexion']
         };
 
-        return requiredFields[step].every(field => formData[field] !== '');
+        if (step in requiredFields) {
+            return requiredFields[step].every(field => {
+                const [parent, child] = field.split('.');
+                return child ? formData[parent][child] !== '' : formData[field] !== '';
+            });
+        }
+        return true;
     };
 
     const validateEducation = () => {
@@ -134,17 +180,24 @@ const AddProfileDetails = () => {
         );
     };
 
-
     const handleNext = () => {
         if (step === 7) {
             if (validateEducation()) {
                 setStep(step + 1);
+            } else {
+                toast.error('Please fill all required fields.');
+            }
+        } else if (step === 8) {
+            if (validateCareer()) {
+                setStep(step + 1);
+            } else {
+                toast.error('Please fill all required fields.');
             }
         }
         else if (validateStep()) {
             setStep(step + 1);
         } else {
-            alert('Please fill all required fields.');
+            toast.error('Please fill all required fields.');
         }
     };
 
@@ -152,18 +205,98 @@ const AddProfileDetails = () => {
         setStep(step - 1);
     };
 
+    const handleGalleryChange = (e) => {
+        const files = Array.from(e.target.files);
+        setFormData({ ...formData, galleryImages: files });
+    };
+
+    const handlePartnerPreferencesChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, partnerPreferences: { ...formData.partnerPreferences, [name]: value } });
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (validateCareer()) {
-            // Submit form data
-            console.log(formData);
+        if (validateStep()) {
+            const formDatasend = new FormData();
+            formDatasend.append('profileImage', formData.profileImage);
+            formDatasend.append('bio', formData.bio);
+            formDatasend.append('nativeLanguage', formData.nativeLanguage);
+            formDatasend.append('maritalStatus', formData.maritalStatus);
+            formDatasend.append('religion', formData.religion);
+            formDatasend.append('caste', formData.caste);
+            formDatasend.append('highestQualification', formData.highestQualification);
+            formDatasend.append('addressLine', formData.addressLine);
+            formDatasend.append('city', formData.city);
+            formDatasend.append('state', formData.state);
+            formDatasend.append('pincode', formData.pincode);
+            formDatasend.append('height', formData.height);
+            formDatasend.append('weight', formData.weight);
+            formDatasend.append('eyeColor', formData.eyeColor);
+            formDatasend.append('hairColor', formData.hairColor);
+            formDatasend.append('complexion', formData.complexion);
+            formDatasend.append('bloodGroup', formData.bloodGroup);
+            formDatasend.append('disability', formData.disability);
+            formDatasend.append('disabilityDetails', formData.disabilityDetails);
+            formDatasend.append('father', formData.father);
+            formDatasend.append('mother', formData.mother);
+            formDatasend.append('siblingsCount', formData.siblingsCount);
+            formDatasend.append('drink', formData.drink);
+            formDatasend.append('smoke', formData.smoke);
+            formDatasend.append('livingWith', formData.livingWith);
+
+            formData.galleryImages.forEach(file => {
+                formDatasend.append('galleryImages', file);
+            });
+
+            formData.education.forEach((edu, index) => {
+                formDatasend.append(`education[${index}][degree]`, edu.degree);
+                formDatasend.append(`education[${index}][specialization]`, edu.specialization);
+                formDatasend.append(`education[${index}][startYear]`, edu.startYear);
+                formDatasend.append(`education[${index}][endYear]`, edu.endYear);
+                formDatasend.append(`education[${index}][status]`, edu.status);
+            });
+
+            formData.career.forEach((car, index) => {
+                formDatasend.append(`career[${index}][designation]`, car.designation);
+                formDatasend.append(`career[${index}][company]`, car.company);
+                formDatasend.append(`career[${index}][startYear]`, car.startYear);
+                formDatasend.append(`career[${index}][endYear]`, car.endYear == null ? "" : car.endYear);
+            });
+
+            formDatasend.append('partnerPreferences[heightMin]', formData.partnerPreferences.heightMin);
+            formDatasend.append('partnerPreferences[heightMax]', formData.partnerPreferences.heightMax);
+            formDatasend.append('partnerPreferences[weightMin]', formData.partnerPreferences.weightMin);
+            formDatasend.append('partnerPreferences[weightMax]', formData.partnerPreferences.weightMax);
+            formDatasend.append('partnerPreferences[maritalStatus]', formData.partnerPreferences.maritalStatus);
+            formDatasend.append('partnerPreferences[religion]', formData.partnerPreferences.religion);
+            formDatasend.append('partnerPreferences[language]', formData.partnerPreferences.language);
+            formDatasend.append('partnerPreferences[education]', formData.partnerPreferences.education);
+            formDatasend.append('partnerPreferences[smokeAcceptable]', formData.partnerPreferences.smokeAcceptable);
+            formDatasend.append('partnerPreferences[drinkAcceptable]', formData.partnerPreferences.drinkAcceptable);
+            formDatasend.append('partnerPreferences[state]', formData.partnerPreferences.state);
+            formDatasend.append('partnerPreferences[complexion]', formData.partnerPreferences.complexion);
+            console.log(formDatasend);
+            axiosInstance.post("/profile/addprofile", formDatasend, {
+                headers: {
+                    "Content-Type": 'multipart/form-data'
+                }
+            })
+                .then(response => {
+                    toast.success("Profile Successfully Completed");
+                    navigate("/search");
+                })
+                .catch(err => {
+                    toast.error(err.response.data);
+                    console.log(err.response.data);
+                });
         } else {
-            alert('Please fill all required fields.');
+            toast.error('Please fill all required fields.');
         }
     };
 
     const commonLanguages = ["Tamil", "Telugu", "Hindi", "Bengali", "Marathi", "Gujarati", "Kannada", "Odia", "Malayalam"];
-    const commonReligions = ["Hinduism", "Islam", "Christianity", "Sikhism", "Buddhism", "Jainism"];
+    const commonReligions = ["Hindu", "Islam", "Christian", "Sikhism", "Buddhism", "Jainism"];
     const statesOfIndia = ["Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"];
     const eyeColors = ["Black", "Brown", "Blue", "Green", "Hazel"];
     const hairColors = ["Black", "Brown", "Blonde", "Grey", "White"];
@@ -180,7 +313,7 @@ const AddProfileDetails = () => {
                             <form onSubmit={handleSubmit}>
                                 {step === 1 && (
                                     <>
-                                        <h2>Profile Image</h2>
+                                        <h2 className='text-primary text-center'>Profile Image</h2>
                                         <div className="mb-3">
                                             <label htmlFor="profileImage" className="form-label">Profile Image</label>
                                             <input
@@ -192,13 +325,15 @@ const AddProfileDetails = () => {
                                                 required
                                             />
                                         </div>
-                                        <button className="btn btn-primary" type="button" onClick={handleNext}>Next</button>
+                                        <div className="d-flex justify-content-end">
+                                            <button className="btn btn-primary" type="button" onClick={handleNext}>Next</button>
+                                        </div>
                                     </>
                                 )}
 
                                 {step === 2 && (
                                     <>
-                                        <h2>Basic Info</h2>
+                                        <h2 className='text-primary text-center'>Basic Info</h2>
                                         <div className="mb-3">
                                             <label htmlFor="bio" className="form-label">Intro or Bio</label>
                                             <textarea
@@ -280,23 +415,23 @@ const AddProfileDetails = () => {
                                                 required
                                             >
                                                 <option value="">Select Your Highest Qualification</option>
-                                                <option value="No Formal Education">No Formal Education</option>
-                                                <option value="High School / Secondary School">High School / Secondary School</option>
-                                                <option value="Associate Degree / Diploma">Associate Degree / Diploma</option>
-                                                <option value="Bachelor's Degree">Bachelor's Degree</option>
-                                                <option value="Master's Degree">Master's Degree</option>
-                                                <option value="Doctorate / PhD">Doctorate / PhD</option>
-                                                <option value="Post-Doctoral Research">Post-Doctoral Research</option>
+                                                <option value="High School">High School</option>
+                                                <option value="Diploma">Associate Degree / Diploma</option>
+                                                <option value="Bachelor's">Bachelor's Degree</option>
+                                                <option value="Master's">Master's Degree</option>
+                                                <option value="PhD">Doctorate / PhD</option>
                                             </select>
                                         </div>
-                                        <button className="btn btn-secondary" type="button" onClick={handlePrevious}>Previous</button>
-                                        <button className="btn btn-primary" type="button" onClick={handleNext}>Next</button>
+                                        <div className="d-flex justify-content-end">
+                                            <button className="btn btn-secondary m-2" type="button" onClick={handlePrevious}>Previous</button>
+                                            <button className="btn btn-primary m-2" type="button" onClick={handleNext}>Next</button>
+                                        </div>
                                     </>
                                 )}
 
                                 {step === 3 && (
                                     <>
-                                        <h2>Address</h2>
+                                        <h2 className='text-primary text-center'>Address</h2>
                                         <div className="mb-3">
                                             <label htmlFor="addressLine" className="form-label">Address Line</label>
                                             <input
@@ -349,14 +484,16 @@ const AddProfileDetails = () => {
                                                 required
                                             />
                                         </div>
-                                        <button className="btn btn-secondary" type="button" onClick={handlePrevious}>Previous</button>
-                                        <button className="btn btn-primary" type="button" onClick={handleNext}>Next</button>
+                                        <div className="d-flex justify-content-end">
+                                            <button className="btn btn-secondary mx-2" type="button" onClick={handlePrevious}>Previous</button>
+                                            <button className="btn btn-primary mx-2" type="button" onClick={handleNext}>Next</button>
+                                        </div>
                                     </>
                                 )}
 
                                 {step === 4 && (
                                     <>
-                                        <h2>Physical Attributes</h2>
+                                        <h2 className='text-primary text-center'>Physical Attributes</h2>
                                         <div className="mb-3">
                                             <label htmlFor="height" className="form-label">Height (cm)</label>
                                             <input
@@ -474,14 +611,16 @@ const AddProfileDetails = () => {
                                                 </div>
                                             )}
                                         </div>
-                                        <button className="btn btn-secondary" type="button" onClick={handlePrevious}>Previous</button>
-                                        <button className="btn btn-primary" type="button" onClick={handleNext}>Next</button>
+                                        <div className="d-flex justify-content-end">
+                                            <button className="btn btn-secondary mx-2" type="button" onClick={handlePrevious}>Previous</button>
+                                            <button className="btn btn-primary mx-2" type="button" onClick={handleNext}>Next</button>
+                                        </div>
                                     </>
                                 )}
 
                                 {step === 5 && (
                                     <>
-                                        <h2>Family Info</h2>
+                                        <h2 className='text-primary text-center'>Family Info</h2>
                                         <div className="mb-3">
                                             <label htmlFor="father" className="form-label">Father</label>
                                             <select
@@ -524,14 +663,16 @@ const AddProfileDetails = () => {
                                                 required
                                             />
                                         </div>
-                                        <button className="btn btn-secondary" type="button" onClick={handlePrevious}>Previous</button>
-                                        <button className="btn btn-primary" type="button" onClick={handleNext}>Next</button>
+                                        <div className="d-flex justify-content-end">
+                                            <button className="btn btn-secondary mx-2" type="button" onClick={handlePrevious}>Previous</button>
+                                            <button className="btn btn-primary mx-2" type="button" onClick={handleNext}>Next</button>
+                                        </div>
                                     </>
                                 )}
 
                                 {step === 6 && (
                                     <>
-                                        <h2>Lifestyle</h2>
+                                        <h2 className='text-primary text-center'>Lifestyle</h2>
                                         <div className="mb-3">
                                             <label htmlFor="drink" className="form-label">Do you drink?</label>
                                             <select
@@ -577,14 +718,16 @@ const AddProfileDetails = () => {
                                                 ))}
                                             </select>
                                         </div>
-                                        <button className="btn btn-secondary" type="button" onClick={handlePrevious}>Previous</button>
-                                        <button className="btn btn-primary" type="button" onClick={handleNext}>Next</button>
+                                        <div className="d-flex justify-content-end">
+                                            <button className="btn btn-secondary mx-2" type="button" onClick={handlePrevious}>Previous</button>
+                                            <button className="btn btn-primary mx-2" type="button" onClick={handleNext}>Next</button>
+                                        </div>
                                     </>
                                 )}
 
                                 {step === 7 && (
                                     <>
-                                        <h2>Education</h2>
+                                        <h2 className='text-primary text-center'>Education</h2>
                                         {formData.education.map((edu, index) => (
                                             <div key={index} className="education-entry">
                                                 <div className="mb-3">
@@ -657,16 +800,19 @@ const AddProfileDetails = () => {
                                                 <button type="button" className="btn btn-danger" onClick={() => removeEducation(index)}>Remove</button>
                                             </div>
                                         ))}
-                                        <button type="button" className="btn btn-primary" onClick={addEducation}>Add Education</button>
-                                        <button className="btn btn-secondary" type="button" onClick={handlePrevious}>Previous</button>
-                                        <button className="btn btn-primary" type="button" onClick={handleNext}>Next</button>
+                                        <div className="d-flex justify-content-end">
+                                            <button type="button" className="btn btn-primary m-2" onClick={addEducation}>Add Education</button>
+                                            <button className="btn btn-secondary m-2" type="button" onClick={handlePrevious}>Previous</button>
+                                            <button className="btn btn-primary m-2" type="button" onClick={handleNext}>Next</button>
+                                        </div>
+
                                     </>
                                 )}
 
 
                                 {step === 8 && (
                                     <>
-                                        <h2>Career</h2>
+                                        <h2 className='text-primary text-center'>Career</h2>
                                         {formData.career.map((car, index) => (
                                             <div key={index} className="career-entry">
                                                 <div className="mb-3">
@@ -724,9 +870,229 @@ const AddProfileDetails = () => {
                                                 <button type="button" className="btn btn-danger" onClick={() => removeCareer(index)}>Remove</button>
                                             </div>
                                         ))}
-                                        <button type="button" className="btn btn-primary" onClick={addCareer}>Add Career</button>
-                                        <button className="btn btn-secondary" type="button" onClick={handlePrevious}>Previous</button>
-                                        <button className="btn btn-success" type="submit">Submit</button>
+                                        <div className="d-flex justify-content-end">
+                                            <button type="button" className="btn btn-primary m-2" onClick={addCareer}>Add Career</button>
+                                            <button className="btn btn-secondary m-2" type="button" onClick={handlePrevious}>Previous</button>
+                                            <button className="btn btn-primary m-2" type="button" onClick={handleNext}>Next</button>
+                                        </div>
+
+                                    </>
+                                )}
+                                {step === 9 && (
+                                    <>
+                                        <h2 className='text-primary text-center'>Gallery</h2>
+                                        <div className="mb-3">
+                                            <label htmlFor="gallery" className="form-label">Upload Images</label>
+                                            <input
+                                                type="file"
+                                                className="form-control"
+                                                id="gallery"
+                                                name="gallery"
+                                                multiple
+                                                onChange={handleGalleryChange}
+                                            />
+                                        </div>
+                                        <div className="d-flex justify-content-end">
+                                            <button className="btn btn-secondary mx-2" type="button" onClick={handlePrevious}>Previous</button>
+                                            <button className="btn btn-primary mx-2" type="button" onClick={handleNext}>Next</button>
+                                        </div>
+                                    </>
+                                )}
+
+                                {step === 10 && (
+                                    <>
+                                        <h2 className='text-primary text-center'>Partner Preferences</h2>
+                                        <div className="row mb-3">
+                                            <div className="col-md-6">
+                                                <label htmlFor="heightMin" className="form-label">Minimum Height (cm)</label>
+                                                <input
+                                                    type="number"
+                                                    className="form-control"
+                                                    id="heightMin"
+                                                    name="heightMin"
+                                                    value={formData.partnerPreferences.heightMin}
+                                                    onChange={handlePartnerPreferencesChange}
+                                                    required
+                                                />
+                                            </div>
+                                            <div className="col-md-6">
+                                                <label htmlFor="heightMax" className="form-label">Maximum Height (cm)</label>
+                                                <input
+                                                    type="number"
+                                                    className="form-control"
+                                                    id="heightMax"
+                                                    name="heightMax"
+                                                    value={formData.partnerPreferences.heightMax}
+                                                    onChange={handlePartnerPreferencesChange}
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="row mb-3">
+                                            <div className="col-md-6">
+                                                <label htmlFor="weightMin" className="form-label">Minimum Weight (Kg)</label>
+                                                <input
+                                                    type="number"
+                                                    className="form-control"
+                                                    id="weightMin"
+                                                    name="weightMin"
+                                                    value={formData.partnerPreferences.weightMin}
+                                                    onChange={handlePartnerPreferencesChange}
+                                                    required
+                                                />
+                                            </div>
+                                            <div className="col-md-6">
+                                                <label htmlFor="weightMax" className="form-label">Maximum Weight (Kg)</label>
+                                                <input
+                                                    type="number"
+                                                    className="form-control"
+                                                    id="weightMax"
+                                                    name="weightMax"
+                                                    value={formData.partnerPreferences.weightMax}
+                                                    onChange={handlePartnerPreferencesChange}
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="row mb-3">
+                                            <div className="col-md-6">
+                                                <label htmlFor="maritalStatus" className="form-label">Marital Status</label>
+                                                <select
+                                                    className="form-control"
+                                                    id="maritalStatus"
+                                                    name="maritalStatus"
+                                                    value={formData.partnerPreferences.maritalStatus}
+                                                    onChange={handlePartnerPreferencesChange}
+                                                    required
+                                                >
+                                                    <option value="">Select Marital Status</option>
+                                                    <option value="Single">Single</option>
+                                                    <option value="Divorced">Divorced</option>
+                                                    <option value="Widowed">Widowed</option>
+                                                </select>
+                                            </div>
+                                            <div className="col-md-6">
+                                                <label htmlFor="education" className="form-label">Minimum Education Qualification</label>
+                                                <select
+                                                    className="form-control"
+                                                    id="education"
+                                                    name="education"
+                                                    value={formData.partnerPreferences.education}
+                                                    onChange={handlePartnerPreferencesChange}
+                                                    required
+                                                >
+                                                    <option value="">Select Education Qualification</option>
+                                                    <option value="High School">High School</option>
+                                                    <option value="Bachelor's">Bachelor's</option>
+                                                    <option value="Master's">Master's</option>
+                                                    <option value="Ph.D.">Ph.D.</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="row mb-3">
+                                            <div className="col-md-6">
+                                                <label htmlFor="religion" className="form-label">Religion</label>
+                                                <select
+                                                    className="form-control"
+                                                    id="religion"
+                                                    name="religion"
+                                                    value={formData.partnerPreferences.religion}
+                                                    onChange={handlePartnerPreferencesChange}
+                                                    required
+                                                >
+                                                    <option value="">Select Religion</option>
+                                                    {commonReligions.map(religion => (
+                                                        <option key={religion} value={religion}>{religion}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div className="col-md-6">
+                                                <label htmlFor="language" className="form-label">Language</label>
+                                                <select
+                                                    className="form-control"
+                                                    id="language"
+                                                    name="language"
+                                                    value={formData.partnerPreferences.language}
+                                                    onChange={handlePartnerPreferencesChange}
+                                                    required
+                                                >
+                                                    <option value="">Select Language</option>
+                                                    {commonLanguages.map(language => (
+                                                        <option key={language} value={language}>{language}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="row mb-3">
+                                            <div className="col-md-6">
+                                                <label htmlFor="smokeAcceptable" className="form-label">Smoke Acceptable</label>
+                                                <select
+                                                    className="form-control"
+                                                    id="smokeAcceptable"
+                                                    name="smokeAcceptable"
+                                                    value={formData.partnerPreferences.smokeAcceptable}
+                                                    onChange={handlePartnerPreferencesChange}
+                                                    required
+                                                >
+                                                    <option value="">Select Option</option>
+                                                    <option value="Yes">Yes</option>
+                                                    <option value="No">No</option>
+                                                </select>
+                                            </div>
+                                            <div className="col-md-6">
+                                                <label htmlFor="drinkAcceptable" className="form-label">Drink Acceptable</label>
+                                                <select
+                                                    className="form-control"
+                                                    id="drinkAcceptable"
+                                                    name="drinkAcceptable"
+                                                    value={formData.partnerPreferences.drinkAcceptable}
+                                                    onChange={handlePartnerPreferencesChange}
+                                                    required
+                                                >
+                                                    <option value="">Select Option</option>
+                                                    <option value="Yes">Yes</option>
+                                                    <option value="No">No</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="row mb-3">
+                                            <div className="col-md-6">
+                                                <label htmlFor="state" className="form-label">State</label>
+                                                <select
+                                                    className="form-control"
+                                                    id="state"
+                                                    name="state"
+                                                    value={formData.partnerPreferences.state}
+                                                    onChange={handlePartnerPreferencesChange}
+                                                    required
+                                                >
+                                                    <option value="">Select State</option>
+                                                    {statesOfIndia.map(state => (
+                                                        <option key={state} value={state}>{state}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div className="col-md-6">
+                                                <label htmlFor="complexion" className="form-label">Complexion</label>
+                                                <select
+                                                    className="form-control"
+                                                    id="complexion"
+                                                    name="complexion"
+                                                    value={formData.partnerPreferences.complexion}
+                                                    onChange={handlePartnerPreferencesChange}
+                                                    required
+                                                >
+                                                    <option value="">Select Complexion</option>
+                                                    {complexions.map(complexion => (
+                                                        <option key={complexion} value={complexion}>{complexion}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="d-flex justify-content-end">
+                                            <button className="btn btn-secondary mx-2" type="button" onClick={handlePrevious}>Previous</button>
+                                            <button className="btn btn-success mx-2" type="submit">Submit</button>
+                                        </div>
                                     </>
                                 )}
                             </form>
