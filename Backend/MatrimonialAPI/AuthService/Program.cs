@@ -8,10 +8,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace AuthService
 {
+    [ExcludeFromCodeCoverage]
     public class Program
     {
         public static void Main(string[] args)
@@ -74,6 +76,7 @@ namespace AuthService
             #region service
             builder.Services.AddScoped<ITokenService, TokenService>();
             builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddSingleton<RabbitMQPublisher>();
             builder.Services.AddSingleton<RabbitMQConsumer>();
             builder.Services.AddHostedService(sp => sp.GetRequiredService<RabbitMQConsumer>());
             #endregion

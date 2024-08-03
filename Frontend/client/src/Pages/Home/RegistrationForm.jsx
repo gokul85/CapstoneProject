@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { GoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from "../../Utils/axiosInstance"
 import { toast } from "react-toastify"
@@ -18,22 +17,6 @@ const RegistrationForm = () => {
         confirmPassword: ""
     });
     const [errors, setErrors] = useState({});
-
-    const handleGoogleLoginSuccess = async (response) => {
-        console.log("Google login successful", response);
-        const profile = response.profileObj;
-        console.log(profile);
-        try {
-            await axiosInstance.post('https://your-backend-api-url/google-login', profile);
-            navigate('/welcome');
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
-    const handleGoogleLoginFailure = (response) => {
-        console.error("Google login failed", response);
-    };
 
     const handleChange = (e) => {
         const { id, value } = e.target;
@@ -85,10 +68,9 @@ const RegistrationForm = () => {
         if (validate()) {
             try {
                 var response = await axiosInstance.post("/user/register", formData);
-                localStorage.setItem("token", response.data.token);
                 toast.success("User Registration Successful")
-                toast.success("Please complete your profile")
-                navigate("/addprofile");
+                toast.success("Please login to create Profile")
+                navigate("/login");
             } catch (error) {
                 toast.error(error.response.data.errorMessage);
             }
@@ -172,13 +154,6 @@ const RegistrationForm = () => {
                 </div>
                 <button type="submit" className="btn btn-primary btn-block w-100">Create Account</button>
             </form>
-            <div className="text-center mt-4 w-100">
-                <p>Or Join With</p>
-                <GoogleLogin
-                    onSuccess={handleGoogleLoginSuccess}
-                    onError={handleGoogleLoginFailure}
-                />
-            </div>
         </div>
     );
 };

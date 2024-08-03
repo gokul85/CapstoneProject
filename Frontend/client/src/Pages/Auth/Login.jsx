@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { GoogleLogin } from '@react-oauth/google';
+// import { GoogleLogin } from '@react-oauth/google';
 import Header from "../Home/Header"
 import axiosInstance from "../../Utils/axiosInstance"
 import { toast } from "react-toastify"
@@ -58,24 +57,24 @@ const Login = () => {
         }
     };
 
-    const handleGoogleLoginSuccess = (credentialResponse) => {
-        console.log("Google login successful", credentialResponse);
-        const profile = credentialResponse.profileObj;
-        axios.post('your-backend-api-url/google-login', profile)
-            .then(res => {
-                console.log(res.data);
-                // handle success
-                navigate("/dashboard");
-            })
-            .catch(err => {
-                console.error(err);
-                // handle error
-            });
-    };
+    // const handleGoogleLoginSuccess = (credentialResponse) => {
+    //     console.log("Google login successful", credentialResponse);
+    //     const profile = credentialResponse.profileObj;
+    //     axios.post('your-backend-api-url/google-login', profile)
+    //         .then(res => {
+    //             console.log(res.data);
+    //             // handle success
+    //             navigate("/dashboard");
+    //         })
+    //         .catch(err => {
+    //             console.error(err);
+    //             // handle error
+    //         });
+    // };
 
-    const handleGoogleLoginFailure = () => {
-        console.error("Google login failed");
-    };
+    // const handleGoogleLoginFailure = () => {
+    //     console.error("Google login failed");
+    // };
 
     return (
         <>
@@ -98,13 +97,13 @@ const Login = () => {
                                 </div>
                                 <button type="submit" className="btn btn-primary btn-block w-100">Login</button>
                             </form>
-                            <div className="text-center mt-4">
+                            {/* <div className="text-center mt-4">
                                 <p>Or Login With</p>
                                 <GoogleLogin
                                     onSuccess={handleGoogleLoginSuccess}
                                     onError={handleGoogleLoginFailure}
                                 />
-                            </div>
+                            </div> */}
                         </div>
                     </div>
                 </div>

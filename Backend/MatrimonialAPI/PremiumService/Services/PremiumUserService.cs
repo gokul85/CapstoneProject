@@ -40,7 +40,14 @@ namespace PremiumService.Services
             }
             else
             {
-                result = await RetriveUserContactDetails(profileid);
+                try
+                {
+                    result = await RetriveUserContactDetails(profileid);
+                }
+                catch(Exception ex) 
+                {
+                    throw ex;
+                }
             }
             return new ResponseModel() { result = result };
         }

@@ -5,11 +5,13 @@ using AuthService.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Diagnostics.CodeAnalysis;
 
 namespace AuthService.Controllers
 {
     [Route("/api/[controller]")]
     [ApiController]
+    [ExcludeFromCodeCoverage]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -103,7 +105,7 @@ namespace AuthService.Controllers
                 var result = await _userService.GetAllUsers();
                 return Ok(result);
             }
-            catch (ObjectsNotFoundException ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "GetAllUsers failed: {Message}", ex.Message);
                 return NotFound(new ErrorModel(404, ex.Message));
@@ -125,7 +127,7 @@ namespace AuthService.Controllers
                 var result = await _userService.GetAllUsers();
                 return Ok(result.Count());
             }
-            catch (ObjectsNotFoundException ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "GetAllUsers failed: {Message}", ex.Message);
                 return NotFound(new ErrorModel(404, ex.Message));

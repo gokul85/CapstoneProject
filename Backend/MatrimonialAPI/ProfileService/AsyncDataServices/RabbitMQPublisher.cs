@@ -3,9 +3,11 @@ using System.Text.Json;
 using System.Text;
 using RabbitMQ.Client;
 using ProfileService.Models.DTOs;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProfileService.AsyncDataServices
 {
+    [ExcludeFromCodeCoverage]
     public class RabbitMQPublisher
     {
         private readonly IConnection _connection;

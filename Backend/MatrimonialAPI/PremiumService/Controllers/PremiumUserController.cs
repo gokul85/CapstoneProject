@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PremiumService.Interfaces;
 using PremiumService.Models.DTOs;
+using System.Diagnostics.CodeAnalysis;
 
 namespace PremiumService.Controllers
 {
+    [ExcludeFromCodeCoverage]
     [Route("/api/premium/")]
     [ApiController]
     public class PremiumUserController : ControllerBase
@@ -76,7 +78,7 @@ namespace PremiumService.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Check View Contact For the User Profile {UserProfile}", profileid);
-                return BadRequest(new ResponseModel());
+                return BadRequest(new ResponseModel() { ErrorMessage = ex.Message});
             }
         }
 

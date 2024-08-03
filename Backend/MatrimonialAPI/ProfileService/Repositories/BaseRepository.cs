@@ -69,14 +69,5 @@ namespace ProfileService.Repositories
             return results;
         }
 
-        public async Task<IEnumerable<T>> GetAllWithIncludes(params Expression<Func<T, object>>[] includes)
-        {
-            IQueryable<T> query = _context.Set<T>();
-            foreach (var include in includes)
-            {
-                query = query.Include(include);
-            }
-            return await query.ToListAsync();
-        }
     }
 }

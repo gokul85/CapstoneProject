@@ -1,4 +1,5 @@
-﻿using AuthService.Exceptions;
+﻿using AuthService.AsyncDataService;
+using AuthService.Exceptions;
 using AuthService.Interfaces;
 using AuthService.Models;
 using AuthService.Models.DTOs;
@@ -12,13 +13,13 @@ namespace AuthService.Services
         private readonly IRepository<int, User> _userrepo;
         private readonly IRepository<int, UserDetails> _userdetailrepo;
         private readonly ITokenService _tokenService;
-        private readonly HttpClient _httpClient;
-        public UserService(IRepository<int, User> userrepo, IRepository<int, UserDetails> userdetail, ITokenService tokenservice, HttpClient httpClient)
+        private readonly RabbitMQPublisher _rabbitMQPublisher;
+        public UserService(IRepository<int, User> userrepo, IRepository<int, UserDetails> userdetail, ITokenService tokenservice, RabbitMQPublisher rabbitMQPublisher)
         {
             _userrepo = userrepo;
             _userdetailrepo = userdetail;
             _tokenService = tokenservice;
-            _httpClient = httpClient;
+            _rabbitMQPublisher = rabbitMQPublisher;
         }
 
         // GetAllUsers
@@ -26,7 +27,7 @@ namespace AuthService.Services
         {
             var result = await _userrepo.GetAll();
             if (result == null)
-                throw new ObjectsNotFoundException("Users Not Found");
+                throw new NoUserFoundException("Users Not Found");
             return result;
         }
 
@@ -119,13 +120,19 @@ namespace AuthService.Services
                     throw new UserAlreadyExistException("User Account Already Exists, Please Login!");
                 }
 
+                var phonefound = await _userrepo.FindAll(u => u.Phone == userDTO.Phone);
+                if (phonefound != null)
+                {
+                    throw new UserAlreadyExistException("Mobile Number is Already Used, Please use different or Please Login!");
+                }
+
                 user = MapUserDTOToUser(userDTO);
                 userdetails = MapUserDTOToUserDetail(userDTO);
                 user = await _userrepo.Add(user);
                 userdetails.UserId = user.Id;
                 userdetails = await _userdetailrepo.Add(userdetails);
 
-                var response = await _httpClient.PostAsJsonAsync("https://localhost:7000/api/profile/CreateProfile", new RegisterUserProfileDTO()
+                _rabbitMQPublisher.PublishRegisterUserProfileMessage(new RegisterUserProfileDTO()
                 {
                     FirstName = userDTO.FirstName,
                     LastName = userDTO.LastName,
@@ -136,13 +143,6 @@ namespace AuthService.Services
                     Email = userDTO.Email,
                     Phone = userDTO.Phone,
                 });
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    await _userdetailrepo.Delete(userdetails);
-                    await _userrepo.Delete(user);
-                    throw new Exception("Failed to create profile. Status: " + response.StatusCode);
-                }
 
                 ReturnDTO returnDTO = await Login(new UserLoginDTO() { Email = user.Email, Password = userDTO.Password });
                 return returnDTO;
@@ -184,14 +184,24 @@ namespace AuthService.Services
         //VerifyUserProfileStatus
         public async Task<bool> VerifyUserProfileStatus(int userId)
         {
-            var userdetail = (await _userdetailrepo.FindAll(ud => ud.UserId == userId)).FirstOrDefault();
+            var userdetails = await _userdetailrepo.FindAll(ud => ud.UserId == userId);
+            if (userdetails == null)
+            {
+                throw new NoUserFoundException("No User Found");
+            }
+            var userdetail = userdetails.FirstOrDefault();
             return userdetail.ProfileCompleted;
         }
 
         //UpdateUserProfileStatus
         public async Task<string> UpdateUserProfileStatus(int userid)
         {
-            var userdetail = (await _userdetailrepo.FindAll(ud => ud.UserId == userid)).FirstOrDefault();
+            var userdetails = await _userdetailrepo.FindAll(ud => ud.UserId == userid);
+            if (userdetails == null)
+            {
+                throw new NoUserFoundException("No User Found");
+            }
+            var userdetail = userdetails.FirstOrDefault();
             userdetail.ProfileCompleted = true;
             userdetail = await _userdetailrepo.Update(userdetail);
             return "Updated";
@@ -200,7 +210,12 @@ namespace AuthService.Services
         //UpdateUserPremiumStatus
         public async Task<string> UpdateUserPremiumStatus(int userid)
         {
-            var userdetail = (await _userdetailrepo.FindAll(ud => ud.UserId == userid)).FirstOrDefault();
+            var userdetails = await _userdetailrepo.FindAll(ud => ud.UserId == userid);
+            if(userdetails == null)
+            {
+                throw new NoUserFoundException("No User Found");
+            }
+            var userdetail = userdetails.FirstOrDefault();
             userdetail.IsPremium = true;
             userdetail = await _userdetailrepo.Update(userdetail);
             return "Updated";
@@ -209,7 +224,12 @@ namespace AuthService.Services
         // RefreshUserToken
         public async Task<string> RefreshUserToken(int userid)
         {
-            var userdetail = (await _userdetailrepo.FindAll(ud => ud.UserId == userid)).FirstOrDefault();
+            var userdetails = await _userdetailrepo.FindAll(ud => ud.UserId == userid);
+            if(userdetails == null)
+            {
+                throw new NoUserFoundException("No User Found");
+            }
+            var userdetail = userdetails.FirstOrDefault();
             var user = await _userrepo.Get(userid);
             string token = _tokenService.GenerateToken(user, userdetail.IsPremium);
             return token;

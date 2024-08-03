@@ -189,6 +189,28 @@
       }
     },
     {
+      "DownstreamPathTemplate": "/api/profile/verifyprofilestatus",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7002
+        }
+      ],
+      "UpstreamPathTemplate": "/api/profile/verifyprofilestatus",
+      "UpstreamHttpMethod": [ "Post" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": [ "User" ]
+      },
+      "AddHeadersToRequest": {
+        "UserId": "Claims[uid] > value > |"
+      },
+      "CacheOptions": {
+        "TtlSeconds": 30
+      }
+    },
+    {
       "DownstreamPathTemplate": "/api/search/searchprofiles",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
@@ -242,7 +264,7 @@
         }
       ],
       "UpstreamPathTemplate": "/api/premium/{everything}",
-      "UpstreamHttpMethod": [ "Get","Post" ],
+      "UpstreamHttpMethod": [ "Get", "Post" ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": [ "User" ]

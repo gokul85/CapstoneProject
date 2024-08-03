@@ -5,9 +5,11 @@ using PremiumService.Interfaces;
 using PremiumService.Models;
 using PremiumService.Repositories;
 using PremiumService.Services;
+using System.Diagnostics.CodeAnalysis;
 
 namespace PremiumService
 {
+    [ExcludeFromCodeCoverage]
     public class Program
     {
         public static void Main(string[] args)

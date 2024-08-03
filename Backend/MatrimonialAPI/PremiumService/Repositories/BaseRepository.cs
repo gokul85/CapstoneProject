@@ -56,27 +56,5 @@ namespace PremiumService.Repositories
             await _context.SaveChangesAsync();
             return entity;
         }
-        public async Task<IEnumerable<T>> FindAllWithIncludes(Func<T, bool> predicate, params Expression<Func<T, object>>[] includes)
-        {
-            IQueryable<T> query = _context.Set<T>();
-            foreach (var include in includes)
-            {
-                query = query.Include(include);
-            }
-            var results = query.Where(predicate).ToList();
-            if (results.Count == 0)
-                return null;
-            return results;
-        }
-
-        public async Task<IEnumerable<T>> GetAllWithIncludes(params Expression<Func<T, object>>[] includes)
-        {
-            IQueryable<T> query = _context.Set<T>();
-            foreach (var include in includes)
-            {
-                query = query.Include(include);
-            }
-            return await query.ToListAsync();
-        }
     }
 }

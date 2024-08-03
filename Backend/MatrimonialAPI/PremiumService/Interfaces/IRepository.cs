@@ -10,7 +10,5 @@ namespace PremiumService.Interfaces
         Task<IEnumerable<T>> GetAll();
         Task<T> Get(K key);
         Task<IEnumerable<T>> FindAll(Func<T, bool> predicate);
-        Task<IEnumerable<T>> FindAllWithIncludes(Func<T, bool> predicate, params Expression<Func<T, object>>[] includes);
-        Task<IEnumerable<T>> GetAllWithIncludes(params Expression<Func<T, object>>[] includes);
     }
 }

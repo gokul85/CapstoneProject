@@ -37,7 +37,7 @@ const SearchPage = () => {
                 navigate("/login");
             } else {
                 try {
-                    var res = await axiosInstance.post("/user/verifyprofilestatus");
+                    var res = await axiosInstance.post("/profile/verifyprofilestatus");
                     if (!res.data.result) {
                         toast.warn("Please Complete your profile");
                         navigate("/addprofile");

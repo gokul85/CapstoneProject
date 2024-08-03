@@ -1,11 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ProfileService.AsyncDataServices;
 using ProfileService.Interfaces;
 using ProfileService.Models.DTOs;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 
 namespace ProfileService.Controllers
 {
+    [ExcludeFromCodeCoverage]
     [Route("/api/profile/")]
     [ApiController]
     public class UserProfileController : ControllerBase
@@ -89,6 +92,32 @@ namespace ProfileService.Controllers
             {
                 _logger.LogError(ex, "View Contact Details Error for User Profile ", id);
                 return BadRequest(new ResponseModel() { HasError = true, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost("VerifyProfileStatus")]
+        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseModel), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<bool>> VerifyProfileStatus()
+        {
+            try
+            {
+                if (HttpContext.Request.Headers.TryGetValue("UserId", out var userIdHeader))
+                {
+                    int userid = int.Parse(userIdHeader.FirstOrDefault());
+                    var result = _profileService.VerifyUserProfileStatus(userid);
+                    return Ok(result);
+                }
+                else
+                {
+                    _logger.LogWarning("UserId claim is missing in the request headers.");
+                    return BadRequest(new ResponseModel { HasError = true, ErrorMessage = "UserId claim is missing." });
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new ResponseModel() { ErrorMessage = ex.Message});
             }
         }
     }

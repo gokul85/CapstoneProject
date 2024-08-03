@@ -50,42 +50,15 @@ namespace ProfileService.Services
             if (dateOfBirth.Date > today.AddYears(-age)) age--;
             return age;
         }
-        //public async Task<ResponseModel> SearchProfiles(int userid)
-        //{
-        //    var userprofile = (await _userprofilerepo.FindAllWithIncludes(up => up.UserId == userid, up => up.BasicInfo)).FirstOrDefault();
-
-        //    var res = await _userprofilerepo.FindAllWithIncludes(up=>up.BasicInfo.Gender != userprofile.BasicInfo.Gender && up.ProfileCompleted == true, up => up.BasicInfo, up => up.Careers, up => up.Address, up => up.PhysicalAttribute);
-
-        //    if(res == null)
-        //    {
-        //        return new ResponseModel { result = null };
-        //    }
-
-        //    var searchProfileDTOs = res.Select(up => new SearchProfileDTO
-        //    {
-        //        Id = up.Id,
-        //        Name = up.BasicInfo.FirstName+" "+ up.BasicInfo.LastName,
-        //        Profession = up.Careers.LastOrDefault()?.JobTitle ?? "Unknown",
-        //        State = up.Address.State,
-        //        MaritalStatus = up.BasicInfo.MaritalStatus,
-        //        Religion = up.BasicInfo.Religion,
-        //        Height = up.PhysicalAttribute.Height,
-        //        Weight = up.PhysicalAttribute.Weight,
-        //        Age = CalculateAge(up.BasicInfo.DOB),
-        //        Complexion = up.PhysicalAttribute.Complextion,
-        //        Image = up.ProfileImage
-        //    }).ToList();
-
-        //    return new ResponseModel() { result = searchProfileDTOs };
-        //}
 
         public async Task<ResponseModel> SearchProfiles(SearchCriteriaDTO searchCriteria, int userid)
         {
-            var userprofile = (await _userprofilerepo.FindAllWithIncludes(up => up.UserId == userid, up => up.BasicInfo, up => up.PartnerPref)).FirstOrDefault();
-            if (userprofile == null)
+            var userprofiles = await _userprofilerepo.FindAllWithIncludes(up => up.UserId == userid, up => up.BasicInfo, up => up.PartnerPref);
+            if (userprofiles == null)
             {
                 throw new UserProfileNotFoundException("User Profile Not Found");
             }
+            var userprofile = userprofiles.FirstOrDefault();
             IEnumerable<UserProfile> res = null;
             if (searchCriteria.PP)
             {
@@ -150,49 +123,48 @@ namespace ProfileService.Services
 
         public async Task<ResponseModel> ViewProfile(int profileid)
         {
-            try
-            {
-                var userprofile = (await _userprofilerepo.FindAllWithIncludes(up => up.Id == profileid, up => up.BasicInfo, up => up.PhysicalAttribute, up => up.LifeStyle, up => up.Educations, up => up.Careers, up=>up.Address,up=>up.FamilyInfo)).FirstOrDefault();
+            var userprofiles = await _userprofilerepo.FindAllWithIncludes(up => up.Id == profileid, up => up.BasicInfo, up => up.PhysicalAttribute, up => up.LifeStyle, up => up.Educations, up => up.Careers, up => up.Address, up => up.FamilyInfo);
 
-                var viewprofile = new ViewProfileReturnDTO()
-                {
-                    ProfileImage = userprofile.ProfileImage,
-                    FirstName = userprofile.BasicInfo.FirstName,
-                    LastName = userprofile.BasicInfo.LastName,
-                    DOB = userprofile.BasicInfo.DOB,
-                    Gender = userprofile.BasicInfo.Gender,
-                    MaritalStatus = userprofile.BasicInfo.MaritalStatus,
-                    OnBehalf = userprofile.ProfileFor,
-                    Intro = userprofile.BasicInfo.Intro,
-                    Height = userprofile.PhysicalAttribute.Height,
-                    Weight = userprofile.PhysicalAttribute.Weight,
-                    BloodGroup = userprofile.PhysicalAttribute.BloodGroup,
-                    HairColor = userprofile.PhysicalAttribute.HairColor,
-                    EyeColor = userprofile.PhysicalAttribute.EyeColor,
-                    Complexion = userprofile.PhysicalAttribute.Complextion,
-                    Disability = userprofile.PhysicalAttribute.Disability == false ? "No" : "Yes",
-                    NativeLanguage = userprofile.BasicInfo.NativeLanguage,
-                    Drink = userprofile.LifeStyle.Drink == false ? "No" : "Yes",
-                    Smoke = userprofile.LifeStyle.Smoke == false ? "No" : "Yes",
-                    LivingWith = userprofile.LifeStyle.LivingWith,
-                    Religion = userprofile.BasicInfo.Religion,
-                    Caste = userprofile.BasicInfo.Caste,
-                    State = userprofile.Address.State,
-                    City = userprofile.Address.City,
-                    FatherStatus = userprofile.FamilyInfo.Father == true ? "Alive" : "Deceased",
-                    MotherStatus = userprofile.FamilyInfo.Mother == true ? "Alive" : "Deceased",
-                    Noofsiblings = userprofile.FamilyInfo.Siblings,
-                    Educations = userprofile.Educations.ToList(),
-                    Careers = userprofile.Careers.ToList()
-                };
-
-                return new ResponseModel() { result = viewprofile };
-            }
-            catch (Exception ex)
+            if (userprofiles == null)
             {
-                Console.WriteLine(ex.ToString());
-                return new ResponseModel() { HasError = true, ErrorMessage = "User Profile Not Found" };
+                throw new UserProfileNotFoundException("User Profiles Not Found");
             }
+
+            var userprofile = userprofiles.First();
+
+            var viewprofile = new ViewProfileReturnDTO()
+            {
+                ProfileImage = userprofile.ProfileImage,
+                FirstName = userprofile.BasicInfo.FirstName,
+                LastName = userprofile.BasicInfo.LastName,
+                DOB = userprofile.BasicInfo.DOB,
+                Gender = userprofile.BasicInfo.Gender,
+                MaritalStatus = userprofile.BasicInfo.MaritalStatus,
+                OnBehalf = userprofile.ProfileFor,
+                Intro = userprofile.BasicInfo.Intro,
+                Height = userprofile.PhysicalAttribute.Height,
+                Weight = userprofile.PhysicalAttribute.Weight,
+                BloodGroup = userprofile.PhysicalAttribute.BloodGroup,
+                HairColor = userprofile.PhysicalAttribute.HairColor,
+                EyeColor = userprofile.PhysicalAttribute.EyeColor,
+                Complexion = userprofile.PhysicalAttribute.Complextion,
+                Disability = userprofile.PhysicalAttribute.Disability == false ? "No" : "Yes",
+                NativeLanguage = userprofile.BasicInfo.NativeLanguage,
+                Drink = userprofile.LifeStyle.Drink == false ? "No" : "Yes",
+                Smoke = userprofile.LifeStyle.Smoke == false ? "No" : "Yes",
+                LivingWith = userprofile.LifeStyle.LivingWith,
+                Religion = userprofile.BasicInfo.Religion,
+                Caste = userprofile.BasicInfo.Caste,
+                State = userprofile.Address.State,
+                City = userprofile.Address.City,
+                FatherStatus = userprofile.FamilyInfo.Father == true ? "Alive" : "Deceased",
+                MotherStatus = userprofile.FamilyInfo.Mother == true ? "Alive" : "Deceased",
+                Noofsiblings = userprofile.FamilyInfo.Siblings,
+                Educations = userprofile.Educations.ToList(),
+                Careers = userprofile.Careers.ToList()
+            };
+
+            return new ResponseModel() { result = viewprofile };
         }
     }
 }

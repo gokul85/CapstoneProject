@@ -9,10 +9,12 @@ using ProfileService.Interfaces;
 using ProfileService.Models;
 using ProfileService.Repositories;
 using ProfileService.Services;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace ProfileService
 {
+    [ExcludeFromCodeCoverage]
     public class Program
     {
         public static void Main(string[] args)
@@ -54,6 +56,8 @@ namespace ProfileService
             builder.Services.AddScoped<FileUploadService>();
             builder.Services.AddScoped<IProfileService, UserProfileService>();
             builder.Services.AddScoped<ISearchService, SearchService>();
+            builder.Services.AddSingleton<RabbitMQConsumer>();
+            builder.Services.AddHostedService(sp => sp.GetRequiredService<RabbitMQConsumer>());
             #endregion
 
             var app = builder.Build();

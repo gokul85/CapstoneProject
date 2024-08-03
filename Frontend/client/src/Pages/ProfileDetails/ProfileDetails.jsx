@@ -13,7 +13,7 @@ const AddProfileDetails = () => {
                 navigate("/login");
             } else {
                 try {
-                    var res = await axiosInstance.post("/user/verifyprofilestatus");
+                    var res = await axiosInstance.post("/profile/verifyprofilestatus");
                     if (res.data.result) {
                         toast.warn("Profile Already Completed");
                         navigate("/search");
@@ -36,12 +36,12 @@ const AddProfileDetails = () => {
         maritalStatus: 'Single',
         religion: 'Hindu',
         caste: '',
-        highestQualification: '',
+        highestQualification: "Bachelor's",
         addressLine: 'Test Address',
         city: 'Test City',
         state: 'Tamil Nadu',
         pincode: '620001',
-        height: '175',
+        height: '170',
         weight: '65',
         eyeColor: 'Black',
         hairColor: 'Black',
@@ -70,9 +70,9 @@ const AddProfileDetails = () => {
             endYear: null,
         }],
         partnerPreferences: {
-            heightMin: 160,
+            heightMin: 140,
             heightMax: 170,
-            weightMin: 50,
+            weightMin: 40,
             weightMax: 60,
             maritalStatus: 'Single',
             religion: 'Hindu',

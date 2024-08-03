@@ -1,6 +1,24 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode"
 
 const UserHeader = () => {
+    const [isPremium, setIsPremium] = useState(false)
+    const navigate = useNavigate();
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            try {
+                const decodedToken = jwtDecode(token);
+                setIsPremium(decodedToken.isPremium === "False" ? false : true);
+            } catch (error) {
+                console.error("Error decoding token", error);
+            }
+        } else {
+            navigate("/login");
+        }
+    }, [navigate])
+
     return (
         <header className="navbar navbar-expand-lg navbar-light bg-light">
             <div className="container-fluid">
@@ -13,9 +31,9 @@ const UserHeader = () => {
                         <li className="nav-item text-end">
                             <Link className="nav-link" to="/search">Search</Link>
                         </li>
-                        <li className="nav-item text-end">
+                        {isPremium === false ? (<li className="nav-item text-end">
                             <Link className="nav-link" to="/premium">Premium</Link>
-                        </li>
+                        </li>) : (<></>)}
                         <li className="nav-item text-end">
                             <Link className="nav-link" to="/">Profile</Link>
                         </li>

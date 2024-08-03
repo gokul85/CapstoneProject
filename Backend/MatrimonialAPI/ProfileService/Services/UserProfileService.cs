@@ -21,7 +21,6 @@ namespace ProfileService.Services
         private readonly IRepository<int, ProfileImages> _gallaryimagesrepo;
         private readonly FileUploadService _fileUploadService;
         private readonly RabbitMQPublisher _rabbitMQPublisher;
-        private readonly HttpClient _httpClient;
 
         public UserProfileService(
             IRepository<int, BasicInfo> basicinforepo, 
@@ -35,7 +34,6 @@ namespace ProfileService.Services
             IRepository<int, PartnerPreference> partnerprefrepo,
             FileUploadService fileUploadService,
             RabbitMQPublisher rabbitMQPublisher,
-            HttpClient httpClient,
             IRepository<int, ProfileImages> gallaryimagesrepo)
         {
             _basicinforepo = basicinforepo;
@@ -49,7 +47,6 @@ namespace ProfileService.Services
             _partnerprefrepo = partnerprefrepo;
             _fileUploadService = fileUploadService;
             _rabbitMQPublisher = rabbitMQPublisher;
-            _httpClient = httpClient;
             _gallaryimagesrepo = gallaryimagesrepo;
         }
 
@@ -75,12 +72,7 @@ namespace ProfileService.Services
             await AddUserProfileCareers(addprofile, userprofile.Id);
             var res = await UpdateUserProfile(userprofile, addressid, phyattid, familyinfoid, lifestyleid, partnerprefid, profileImageUrl);
             await UpdateUserGallaryImages(galleryImageUrls, userprofile.Id);
-            var response = await _httpClient.PostAsJsonAsync("https://localhost:7000/api/user/updateuserprofilestatus", new ProfileCompletedMessageDTO { UserId = addprofile.UserId });
-            if (!response.IsSuccessStatusCode)
-            {
-                _rabbitMQPublisher.PublishProfileMessage(new ProfileCompletedMessageDTO { UserId = addprofile.UserId });
-                throw new Exception("Profile Details Added, Failed to update status now. Please try login again");
-            }
+            _rabbitMQPublisher.PublishProfileMessage(new ProfileCompletedMessageDTO { UserId = addprofile.UserId });
             return new ResponseModel
             {
                 result = res
@@ -295,14 +287,29 @@ namespace ProfileService.Services
 
         public async Task<ResponseModel> GetUserContactDetails(int userprofileid)
         {
-            var userprofile = (await _userprofilerepo.FindAllWithIncludes(up=>up.Id == userprofileid, up=>up.BasicInfo)).FirstOrDefault();
+            var userprofiles = await _userprofilerepo.FindAllWithIncludes(up=>up.Id == userprofileid, up=>up.BasicInfo);
 
-            if(userprofile == null)
+            if(userprofiles == null)
             {
                 throw new UserProfileNotFoundException("User Profile Not Found");
             }
 
+            var userprofile = userprofiles.FirstOrDefault();
+
             return new ResponseModel() { result = new ContactDetailsDTO() { Email = userprofile.BasicInfo.Email, Mobile = userprofile.BasicInfo.Phone } };
+        }
+
+
+        //VerifyUserProfileStatus
+        public async Task<bool> VerifyUserProfileStatus(int userId)
+        {
+            var userprofiles = await _userprofilerepo.FindAll(ud => ud.UserId == userId);
+            if (userprofiles == null)
+            {
+                throw new UserProfileNotFoundException("User Profile Not Found");
+            }
+            var userprofile = userprofiles.FirstOrDefault();
+            return userprofile.ProfileCompleted;
         }
     }
 }

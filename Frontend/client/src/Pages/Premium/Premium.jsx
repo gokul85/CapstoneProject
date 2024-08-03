@@ -1,10 +1,27 @@
-// Premium.js
-import React from 'react';
+import React, { useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
+import { toast } from 'react-toastify';
 
 const Premium = () => {
     const navigate = useNavigate();
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            try {
+                const decodedToken = jwtDecode(token);
+                if (decodedToken.isPremium !== "False") {
+                    toast.warn("You are already an Premium User");
+                    navigate("/search");
+                }
+            } catch (error) {
+                console.error("Error decoding token", error);
+            }
+        } else {
+            navigate("/login");
+        }
+    }, [navigate])
 
     const handleCheckout = () => {
         navigate('/checkout');
@@ -19,7 +36,7 @@ const Premium = () => {
                         <li className="mb-2"><i className="bi bi-check-circle-fill text-success"></i> Premium Users can see the contact details</li>
                         <li className="mb-2"><i className="bi bi-check-circle-fill text-success"></i> Premium Users can only see 5 contacts per day</li>
                     </ul>
-                    <h4 className="mb-4">₹999 / Month</h4>
+                    <h4 className="mb-4">₹999</h4>
                     <button className="btn btn-primary btn-block" onClick={handleCheckout}>Go to Checkout</button>
                 </div>
             </div>

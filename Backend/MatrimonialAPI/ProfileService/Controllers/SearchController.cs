@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProfileService.Interfaces;
 using ProfileService.Models.DTOs;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProfileService.Controllers
 {
+    [ExcludeFromCodeCoverage]
     [Route("/api/search/")]
     [ApiController]
     public class SearchController : ControllerBase

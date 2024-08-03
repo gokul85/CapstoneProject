@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text;
 using RabbitMQ.Client;
 using PremiumService.Models.DTOs;
+using PremiumService.Interfaces;
 
 namespace PremiumService.AsyncDataService
 {

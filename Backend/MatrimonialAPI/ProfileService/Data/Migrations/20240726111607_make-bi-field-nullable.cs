@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
+using System.Diagnostics.CodeAnalysis;
 
 #nullable disable
 
 namespace ProfileService.Migrations
 {
+    [ExcludeFromCodeCoverage]
     public partial class makebifieldnullable : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
