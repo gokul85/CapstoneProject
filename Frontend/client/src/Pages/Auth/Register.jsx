@@ -1,7 +1,8 @@
 import React from 'react';
 import RegistrationForm from "../Home/RegistrationForm"
+import { useNavigate } from "react-router-dom"
 import Header from "../Home/Header"
-import { useEffect, useNavigate } from 'react';
+import { useEffect } from 'react';
 
 const Register = () => {
     const navigate = useNavigate()

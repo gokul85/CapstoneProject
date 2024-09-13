@@ -8,10 +8,9 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["PremiumService/PremiumService.csproj", "PremiumService/"]
-RUN dotnet restore "./PremiumService/PremiumService.csproj"
+COPY ["PremiumService.csproj", "./"]
+RUN dotnet restore "./PremiumService.csproj"
 COPY . .
-WORKDIR "/src/PremiumService"
 RUN dotnet build "./PremiumService.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish

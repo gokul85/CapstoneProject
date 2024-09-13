@@ -64,6 +64,8 @@ namespace ProfileService.Tests
                 .AddInMemoryCollection(new Dictionary<string, string>
                 {
                     { "RabbitMQ:Host", "localhost" },
+                    { "RabbitMQ:Password", "guest" },
+                    { "RabbitMQ:UserName", "guest" },
                     { "RabbitMQ:ProfileQueueName", "test_profile_queue" }
                 })
                 .Build();

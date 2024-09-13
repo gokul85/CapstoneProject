@@ -68,7 +68,7 @@ const RegistrationForm = () => {
         if (validate()) {
             try {
                 var response = await axiosInstance.post("/user/register", formData);
-                toast.success("User Registration Successful")
+                toast.success("User Registration Successful for " + response.data.name)
                 toast.success("Please login to create Profile")
                 navigate("/login");
             } catch (error) {

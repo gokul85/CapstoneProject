@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: premiumservice-depl
+  labels:
+    app: premiumservice
+spec:
+  selector:
+    matchLabels:
+      app: premiumservice
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: premiumservice
+    spec:
+      containers:
+        - name: premiumservice
+          image: gokulcapstoneproject.azurecr.io/premiumservice:latest
+          env:
+            - name: ConnectionStrings__keyvaulturi
+              value: "https://matrimonialapp.vault.azure.net/"
+            - name: RabbitMQ__Host
+              value: "rabbitmq-clusterip-srv"
+            - name: RabbitMQ__UserName
+              value: "guest"
+            - name: RabbitMQ__Password
+              value: "guest"
+            - name: RabbitMQ__ProfileQueueName
+              value: "matrimonial-profile-queue"
+            - name: RabbitMQ__PaymentQueueName
+              value: "matrimonial-payment-queue"
+            - name: RabbitMQ__AuthQueueName
+              value: "matrimonial-auth-queue"
+            - name: "Azure_Client_ID"
+              value: "2256bf2f-630d-4f29-8d8b-d8eb52369b66"
+          ports:
+            - containerPort: 80
+              name: premiumservice
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: premiumservice-clusterip-srv
+spec:
+  selector:
+    app: premiumservice
+  type: ClusterIP
+  ports:
+    - name: premiumservice
+      protocol: TCP
+      port: 80
+      targetPort: 80

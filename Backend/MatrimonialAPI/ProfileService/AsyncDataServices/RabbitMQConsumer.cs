@@ -25,7 +25,7 @@ namespace ProfileService.AsyncDataServices
 
         private void CreateConnection(IConfiguration configuration)
         {
-            var factory = new ConnectionFactory { HostName = configuration["RabbitMQ:Host"] };
+            var factory = new ConnectionFactory { HostName = configuration["RabbitMQ:Host"], UserName = configuration["RabbitMQ:UserName"], Password = configuration["RabbitMQ:Password"] };
             _connection = factory.CreateConnection();
             _authChannel = _connection.CreateModel();
             _authChannel.QueueDeclare(queue: _authQueueName, durable: false, exclusive: false, autoDelete: false, arguments: null);

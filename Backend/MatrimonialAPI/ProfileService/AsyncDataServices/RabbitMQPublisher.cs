@@ -15,7 +15,7 @@ namespace ProfileService.AsyncDataServices
 
         public RabbitMQPublisher(IConfiguration configuration)
         {
-            var factory = new ConnectionFactory { HostName = configuration["RabbitMQ:Host"] };
+            var factory = new ConnectionFactory { HostName = configuration["RabbitMQ:Host"], UserName = configuration["RabbitMQ:UserName"], Password = configuration["RabbitMQ:Password"] };
             _connection = factory.CreateConnection();
             _profileQueueName = configuration["RabbitMQ:ProfileQueueName"];
         }

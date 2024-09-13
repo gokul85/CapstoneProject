@@ -8,12 +8,14 @@ using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 using System.Text;
 using System.Security.Claims;
+using Azure.Security.KeyVault.Secrets;
+using Azure.Identity;
 
 namespace APIGateway
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +25,13 @@ namespace APIGateway
                                   .AllowAnyMethod());
             });
 
-            // Add services to the container.
+            var kvUri = builder.Configuration.GetConnectionString("keyvaulturi");
+            var clientId = builder.Configuration["Azure_Client_ID"];
+            var client = new SecretClient(new Uri(kvUri), new DefaultAzureCredential(new DefaultAzureCredentialOptions
+            {
+                ManagedIdentityClientId = clientId
+            }));
+            var secret = await client.GetSecretAsync("JWTTokenKey");
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
@@ -32,7 +40,7 @@ namespace APIGateway
                         ValidateIssuer = false,
                         ValidateAudience = false,
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["TokenKey:JWT"])),
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret.Value.Value)),
                         RoleClaimType = ClaimTypes.Role
                     };
                 });

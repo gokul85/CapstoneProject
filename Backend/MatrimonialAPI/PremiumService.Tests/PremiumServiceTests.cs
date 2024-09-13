@@ -47,6 +47,8 @@ namespace PremiumService.Tests
                 .AddInMemoryCollection(new Dictionary<string, string>
                 {
                     { "RabbitMQ:Host", "localhost" },
+                    { "RabbitMQ:Password", "guest" },
+                    { "RabbitMQ:UserName", "guest" },
                     { "RabbitMQ:PaymentQueueName", "test_payment_queue" }
                 })
                 .Build();

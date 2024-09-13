@@ -1,5 +1,7 @@
 ﻿using AuthService.Interfaces;
 using AuthService.Models;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -14,7 +16,17 @@ namespace AuthService.Services
 
         public TokenService(IConfiguration configuration)
         {
-            _secretKey = configuration.GetSection("TokenKey").GetSection("JWT").Value.ToString();
+            var kvUri = configuration.GetConnectionString("keyvaulturi");
+            var clientId = configuration["Azure_Client_ID"];
+
+            var client = new SecretClient(new Uri(kvUri), new DefaultAzureCredential(new DefaultAzureCredentialOptions
+            {
+                ManagedIdentityClientId = clientId
+            }));
+
+            var secret = client.GetSecretAsync("JWTTokenKey").GetAwaiter().GetResult();
+            _secretKey = secret.Value.Value;
+
             _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
         }
         public string GenerateToken(User user, bool isPremium)

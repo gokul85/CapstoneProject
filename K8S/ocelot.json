@@ -1,0 +1,336 @@
+{
+    "Routes": [
+        {
+            "DownstreamPathTemplate": "/api/user/login",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "authservice-clusterip-srv",
+                    "Port": 80
+                }
+            ],
+            "UpstreamPathTemplate": "/api/user/login",
+            "UpstreamHttpMethod": [
+                "Post"
+            ],
+            "CacheOptions": {
+                "TtlSeconds": 30
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/user/register",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "authservice-clusterip-srv",
+                    "Port": 80
+                }
+            ],
+            "UpstreamPathTemplate": "/api/user/register",
+            "UpstreamHttpMethod": [
+                "Post"
+            ],
+            "CacheOptions": {
+                "TtlSeconds": 30
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/user/verifyrole",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "authservice-clusterip-srv",
+                    "Port": 80
+                }
+            ],
+            "UpstreamPathTemplate": "/api/user/verifyrole",
+            "UpstreamHttpMethod": [
+                "Get"
+            ],
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": [
+                    "User"
+                ]
+            },
+            "CacheOptions": {
+                "TtlSeconds": 30
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/user/refreshtoken",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "authservice-clusterip-srv",
+                    "Port": 80
+                }
+            ],
+            "UpstreamPathTemplate": "/api/user/refreshtoken",
+            "UpstreamHttpMethod": [
+                "Get"
+            ],
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": [
+                    "User"
+                ]
+            },
+            "CacheOptions": {
+                "TtlSeconds": 30
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/user/verifyprofilestatus",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "authservice-clusterip-srv",
+                    "Port": 80
+                }
+            ],
+            "UpstreamPathTemplate": "/api/user/verifyprofilestatus",
+            "UpstreamHttpMethod": [
+                "Post"
+            ],
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": [
+                    "User"
+                ]
+            },
+            "CacheOptions": {
+                "TtlSeconds": 30
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/user/updateuserprofilestatus",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "authservice-clusterip-srv",
+                    "Port": 80
+                }
+            ],
+            "UpstreamPathTemplate": "/api/user/updateuserprofilestatus",
+            "UpstreamHttpMethod": [
+                "Post"
+            ],
+            "CacheOptions": {
+                "TtlSeconds": 30
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/user/updateuserpremiumstatus",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "authservice-clusterip-srv",
+                    "Port": 80
+                }
+            ],
+            "UpstreamPathTemplate": "/api/user/updateuserpremiumstatus",
+            "UpstreamHttpMethod": [
+                "Post"
+            ],
+            "CacheOptions": {
+                "TtlSeconds": 30
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/user/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "authservice-clusterip-srv",
+                    "Port": 80
+                }
+            ],
+            "UpstreamPathTemplate": "/api/user/{everything}",
+            "UpstreamHttpMethod": [
+                "Get",
+                "Post",
+                "Put"
+            ],
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": [
+                    "Admin"
+                ]
+            },
+            "CacheOptions": {
+                "TtlSeconds": 30
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/profile/createprofile",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "profileservice-clusterip-srv",
+                    "Port": 80
+                }
+            ],
+            "UpstreamPathTemplate": "/api/profile/createprofile",
+            "UpstreamHttpMethod": [
+                "Post"
+            ],
+            "CacheOptions": {
+                "TtlSeconds": 30
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/profile/getusercontactdetails",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "profileservice-clusterip-srv",
+                    "Port": 80
+                }
+            ],
+            "UpstreamPathTemplate": "/api/profile/getusercontactdetails",
+            "UpstreamHttpMethod": [
+                "Get"
+            ],
+            "CacheOptions": {
+                "TtlSeconds": 30
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/profile/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "profileservice-clusterip-srv",
+                    "Port": 80
+                }
+            ],
+            "UpstreamPathTemplate": "/api/profile/{everything}",
+            "UpstreamHttpMethod": [
+                "Get",
+                "Post"
+            ],
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": [
+                    "User"
+                ]
+            },
+            "AddHeadersToRequest": {
+                "UserId": "Claims[uid] > value > |"
+            },
+            "CacheOptions": {
+                "TtlSeconds": 30
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/profile/verifyprofilestatus",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "profileservice-clusterip-srv",
+                    "Port": 80
+                }
+            ],
+            "UpstreamPathTemplate": "/api/profile/verifyprofilestatus",
+            "UpstreamHttpMethod": [
+                "Post"
+            ],
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": [
+                    "User"
+                ]
+            },
+            "AddHeadersToRequest": {
+                "UserId": "Claims[uid] > value > |"
+            },
+            "CacheOptions": {
+                "TtlSeconds": 30
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/search/searchprofiles",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "profileservice-clusterip-srv",
+                    "Port": 80
+                }
+            ],
+            "UpstreamPathTemplate": "/api/search/searchprofiles",
+            "UpstreamHttpMethod": [
+                "Post"
+            ],
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": [
+                    "User"
+                ]
+            },
+            "AddHeadersToRequest": {
+                "UserId": "Claims[uid] > value > |"
+            },
+            "CacheOptions": {
+                "TtlSeconds": 30
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/search/viewprofile",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "profileservice-clusterip-srv",
+                    "Port": 80
+                }
+            ],
+            "UpstreamPathTemplate": "/api/search/viewprofile",
+            "UpstreamHttpMethod": [
+                "Get"
+            ],
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": [
+                    "User"
+                ]
+            },
+            "AddHeadersToRequest": {
+                "UserId": "Claims[uid] > value > |"
+            },
+            "CacheOptions": {
+                "TtlSeconds": 30
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/premium/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "premiumservice-clusterip-srv",
+                    "Port": 80
+                }
+            ],
+            "UpstreamPathTemplate": "/api/premium/{everything}",
+            "UpstreamHttpMethod": [
+                "Get",
+                "Post"
+            ],
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": [
+                    "User"
+                ]
+            },
+            "AddHeadersToRequest": {
+                "UserId": "Claims[uid] > value > |"
+            },
+            "CacheOptions": {
+                "TtlSeconds": 30
+            }
+        }
+    ],
+    "GlobalConfiguration": {
+        "RequestIdKey": "OcRequestId",
+        "BaseUrl": "http://localhost"
+    }
+}

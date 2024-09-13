@@ -76,7 +76,7 @@ namespace PremiumService.Services
 
         private async Task<object> RetriveUserContactDetails(int profileid)
         {
-            var response = await _httpClient.GetAsync("https://localhost:7000/api/profile/getusercontactdetails?id=" + profileid);
+            var response = await _httpClient.GetAsync("http://profileservice-clusterip-srv/api/profile/getusercontactdetails?id=" + profileid);
             if (!response.IsSuccessStatusCode)
             {
                 throw new UnableToRetriveContactDetails("Unable to retrive contact details");
@@ -95,7 +95,7 @@ namespace PremiumService.Services
 
                 await _paymentrepo.Add(payment);
 
-                var response = await _httpClient.PostAsJsonAsync("https://localhost:7000/api/user/updateuserpremiumstatus", new PaymentCompleteMessageDTO { UserId = subscribePremiumDTO.UserId });
+                var response = await _httpClient.PostAsJsonAsync("http://authservice-clusterip-srv/api/user/updateuserpremiumstatus", new PaymentCompleteMessageDTO { UserId = subscribePremiumDTO.UserId });
                 if (!response.IsSuccessStatusCode)
                 {
                     _rabbitMQPublisher.PublishPaymentMessage(new PaymentCompleteMessageDTO { UserId = subscribePremiumDTO.UserId });

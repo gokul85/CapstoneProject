@@ -1,0 +1,403 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: apigateway-depl
+    labels:
+        app: apigateway
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: apigateway
+    template:
+        metadata:
+            labels:
+                app: apigateway
+        spec:
+            containers:
+                - name: apigateway
+                  image: gokulcapstoneproject.azurecr.io/apigateway:latest
+                  env:
+                      - name: "Azure_Client_ID"
+                        value: "2256bf2f-630d-4f29-8d8b-d8eb52369b66"
+                      - name: ConnectionStrings__keyvaulturi
+                        value: "https://matrimonialapp.vault.azure.net/"
+                  ports:
+                      - containerPort: 80
+                  volumeMounts:
+                      - name: ocelot-config
+                        mountPath: /app/ocelot.json
+                        subPath: ocelot.json
+            volumes:
+                - name: ocelot-config
+                  configMap:
+                      name: ocelot-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: ocelot-config
+data:
+    ocelot.json: |
+        {
+          "Routes": [
+              {
+                  "DownstreamPathTemplate": "/api/user/login",
+                  "DownstreamScheme": "http",
+                  "DownstreamHostAndPorts": [
+                      {
+                          "Host": "authservice-clusterip-srv",
+                          "Port": 80
+                      }
+                  ],
+                  "UpstreamPathTemplate": "/api/user/login",
+                  "UpstreamHttpMethod": [
+                      "Post"
+                  ],
+                  "CacheOptions": {
+                      "TtlSeconds": 30
+                  }
+              },
+              {
+                  "DownstreamPathTemplate": "/api/user/register",
+                  "DownstreamScheme": "http",
+                  "DownstreamHostAndPorts": [
+                      {
+                          "Host": "authservice-clusterip-srv",
+                          "Port": 80
+                      }
+                  ],
+                  "UpstreamPathTemplate": "/api/user/register",
+                  "UpstreamHttpMethod": [
+                      "Post"
+                  ],
+                  "CacheOptions": {
+                      "TtlSeconds": 30
+                  }
+              },
+              {
+                  "DownstreamPathTemplate": "/api/user/verifyrole",
+                  "DownstreamScheme": "http",
+                  "DownstreamHostAndPorts": [
+                      {
+                          "Host": "authservice-clusterip-srv",
+                          "Port": 80
+                      }
+                  ],
+                  "UpstreamPathTemplate": "/api/user/verifyrole",
+                  "UpstreamHttpMethod": [
+                      "Get"
+                  ],
+                  "AuthenticationOptions": {
+                      "AuthenticationProviderKey": "Bearer",
+                      "AllowedScopes": [
+                          "User"
+                      ]
+                  },
+                  "CacheOptions": {
+                      "TtlSeconds": 30
+                  }
+              },
+              {
+                  "DownstreamPathTemplate": "/api/user/refreshtoken",
+                  "DownstreamScheme": "http",
+                  "DownstreamHostAndPorts": [
+                      {
+                          "Host": "authservice-clusterip-srv",
+                          "Port": 80
+                      }
+                  ],
+                  "UpstreamPathTemplate": "/api/user/refreshtoken",
+                  "UpstreamHttpMethod": [
+                      "Get"
+                  ],
+                  "AuthenticationOptions": {
+                      "AuthenticationProviderKey": "Bearer",
+                      "AllowedScopes": [
+                          "User"
+                      ]
+                  },
+                  "CacheOptions": {
+                      "TtlSeconds": 30
+                  }
+              },
+              {
+                  "DownstreamPathTemplate": "/api/user/verifyprofilestatus",
+                  "DownstreamScheme": "http",
+                  "DownstreamHostAndPorts": [
+                      {
+                          "Host": "authservice-clusterip-srv",
+                          "Port": 80
+                      }
+                  ],
+                  "UpstreamPathTemplate": "/api/user/verifyprofilestatus",
+                  "UpstreamHttpMethod": [
+                      "Post"
+                  ],
+                  "AuthenticationOptions": {
+                      "AuthenticationProviderKey": "Bearer",
+                      "AllowedScopes": [
+                          "User"
+                      ]
+                  },
+                  "CacheOptions": {
+                      "TtlSeconds": 30
+                  }
+              },
+              {
+                  "DownstreamPathTemplate": "/api/user/updateuserprofilestatus",
+                  "DownstreamScheme": "http",
+                  "DownstreamHostAndPorts": [
+                      {
+                          "Host": "authservice-clusterip-srv",
+                          "Port": 80
+                      }
+                  ],
+                  "UpstreamPathTemplate": "/api/user/updateuserprofilestatus",
+                  "UpstreamHttpMethod": [
+                      "Post"
+                  ],
+                  "CacheOptions": {
+                      "TtlSeconds": 30
+                  }
+              },
+              {
+                  "DownstreamPathTemplate": "/api/user/updateuserpremiumstatus",
+                  "DownstreamScheme": "http",
+                  "DownstreamHostAndPorts": [
+                      {
+                          "Host": "authservice-clusterip-srv",
+                          "Port": 80
+                      }
+                  ],
+                  "UpstreamPathTemplate": "/api/user/updateuserpremiumstatus",
+                  "UpstreamHttpMethod": [
+                      "Post"
+                  ],
+                  "CacheOptions": {
+                      "TtlSeconds": 30
+                  }
+              },
+              {
+                  "DownstreamPathTemplate": "/api/user/{everything}",
+                  "DownstreamScheme": "http",
+                  "DownstreamHostAndPorts": [
+                      {
+                          "Host": "authservice-clusterip-srv",
+                          "Port": 80
+                      }
+                  ],
+                  "UpstreamPathTemplate": "/api/user/{everything}",
+                  "UpstreamHttpMethod": [
+                      "Get",
+                      "Post",
+                      "Put"
+                  ],
+                  "AuthenticationOptions": {
+                      "AuthenticationProviderKey": "Bearer",
+                      "AllowedScopes": [
+                          "Admin"
+                      ]
+                  },
+                  "CacheOptions": {
+                      "TtlSeconds": 30
+                  }
+              },
+              {
+                  "DownstreamPathTemplate": "/api/profile/createprofile",
+                  "DownstreamScheme": "http",
+                  "DownstreamHostAndPorts": [
+                      {
+                          "Host": "profileservice-clusterip-srv",
+                          "Port": 80
+                      }
+                  ],
+                  "UpstreamPathTemplate": "/api/profile/createprofile",
+                  "UpstreamHttpMethod": [
+                      "Post"
+                  ],
+                  "CacheOptions": {
+                      "TtlSeconds": 30
+                  }
+              },
+              {
+                  "DownstreamPathTemplate": "/api/profile/getusercontactdetails",
+                  "DownstreamScheme": "http",
+                  "DownstreamHostAndPorts": [
+                      {
+                          "Host": "profileservice-clusterip-srv",
+                          "Port": 80
+                      }
+                  ],
+                  "UpstreamPathTemplate": "/api/profile/getusercontactdetails",
+                  "UpstreamHttpMethod": [
+                      "Get"
+                  ],
+                  "CacheOptions": {
+                      "TtlSeconds": 30
+                  }
+              },
+              {
+                  "DownstreamPathTemplate": "/api/profile/{everything}",
+                  "DownstreamScheme": "http",
+                  "DownstreamHostAndPorts": [
+                      {
+                          "Host": "profileservice-clusterip-srv",
+                          "Port": 80
+                      }
+                  ],
+                  "UpstreamPathTemplate": "/api/profile/{everything}",
+                  "UpstreamHttpMethod": [
+                      "Get",
+                      "Post"
+                  ],
+                  "AuthenticationOptions": {
+                      "AuthenticationProviderKey": "Bearer",
+                      "AllowedScopes": [
+                          "User"
+                      ]
+                  },
+                  "AddHeadersToRequest": {
+                      "UserId": "Claims[uid] > value > |"
+                  },
+                  "CacheOptions": {
+                      "TtlSeconds": 30
+                  }
+              },
+              {
+                  "DownstreamPathTemplate": "/api/profile/verifyprofilestatus",
+                  "DownstreamScheme": "http",
+                  "DownstreamHostAndPorts": [
+                      {
+                          "Host": "profileservice-clusterip-srv",
+                          "Port": 80
+                      }
+                  ],
+                  "UpstreamPathTemplate": "/api/profile/verifyprofilestatus",
+                  "UpstreamHttpMethod": [
+                      "Post"
+                  ],
+                  "AuthenticationOptions": {
+                      "AuthenticationProviderKey": "Bearer",
+                      "AllowedScopes": [
+                          "User"
+                      ]
+                  },
+                  "AddHeadersToRequest": {
+                      "UserId": "Claims[uid] > value > |"
+                  },
+                  "CacheOptions": {
+                      "TtlSeconds": 30
+                  }
+              },
+              {
+                  "DownstreamPathTemplate": "/api/search/searchprofiles",
+                  "DownstreamScheme": "http",
+                  "DownstreamHostAndPorts": [
+                      {
+                          "Host": "profileservice-clusterip-srv",
+                          "Port": 80
+                      }
+                  ],
+                  "UpstreamPathTemplate": "/api/search/searchprofiles",
+                  "UpstreamHttpMethod": [
+                      "Post"
+                  ],
+                  "AuthenticationOptions": {
+                      "AuthenticationProviderKey": "Bearer",
+                      "AllowedScopes": [
+                          "User"
+                      ]
+                  },
+                  "AddHeadersToRequest": {
+                      "UserId": "Claims[uid] > value > |"
+                  },
+                  "CacheOptions": {
+                      "TtlSeconds": 30
+                  }
+              },
+              {
+                  "DownstreamPathTemplate": "/api/search/viewprofile",
+                  "DownstreamScheme": "http",
+                  "DownstreamHostAndPorts": [
+                      {
+                          "Host": "profileservice-clusterip-srv",
+                          "Port": 80
+                      }
+                  ],
+                  "UpstreamPathTemplate": "/api/search/viewprofile",
+                  "UpstreamHttpMethod": [
+                      "Get"
+                  ],
+                  "AuthenticationOptions": {
+                      "AuthenticationProviderKey": "Bearer",
+                      "AllowedScopes": [
+                          "User"
+                      ]
+                  },
+                  "AddHeadersToRequest": {
+                      "UserId": "Claims[uid] > value > |"
+                  },
+                  "CacheOptions": {
+                      "TtlSeconds": 30
+                  }
+              },
+              {
+                  "DownstreamPathTemplate": "/api/premium/{everything}",
+                  "DownstreamScheme": "http",
+                  "DownstreamHostAndPorts": [
+                      {
+                          "Host": "premiumservice-clusterip-srv",
+                          "Port": 80
+                      }
+                  ],
+                  "UpstreamPathTemplate": "/api/premium/{everything}",
+                  "UpstreamHttpMethod": [
+                      "Get",
+                      "Post"
+                  ],
+                  "AuthenticationOptions": {
+                      "AuthenticationProviderKey": "Bearer",
+                      "AllowedScopes": [
+                          "User"
+                      ]
+                  },
+                  "AddHeadersToRequest": {
+                      "UserId": "Claims[uid] > value > |"
+                  },
+                  "CacheOptions": {
+                      "TtlSeconds": 30
+                  }
+              }
+          ],
+          "GlobalConfiguration": {
+              "RequestIdKey": "OcRequestId",
+              "BaseUrl": "http://localhost"
+          }
+        }
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: apigateway-clusterip-srv
+spec:
+    selector:
+        app: apigateway
+    type: ClusterIP
+    ports:
+        - protocol: TCP
+          port: 80
+          targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: apigateway-loadbalancer
+spec:
+    selector:
+        app: apigateway
+    type: LoadBalancer
+    ports:
+        - protocol: TCP
+          port: 80
+          targetPort: 80

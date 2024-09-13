@@ -1,3 +1,5 @@
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +19,7 @@ namespace ProfileService
     [ExcludeFromCodeCoverage]
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddHttpClient();
@@ -30,10 +32,18 @@ namespace ProfileService
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            var kvUri = builder.Configuration.GetConnectionString("keyvaulturi");
+            var clientId = builder.Configuration["Azure_Client_ID"];
+            var client = new SecretClient(new Uri(kvUri), new DefaultAzureCredential(new DefaultAzureCredentialOptions
+            {
+                ManagedIdentityClientId = clientId
+            }));
+            var connectionstring = await client.GetSecretAsync("ProfileServiceConnectionString");
+
             #region context
             builder.Services.AddDbContext<ProfileServiceDBContext>(options =>
             {
-                options.UseSqlServer(builder.Configuration.GetConnectionString("defaultConnection"));
+                options.UseSqlServer(connectionstring.Value.Value);
             });
             #endregion
 
@@ -61,6 +71,12 @@ namespace ProfileService
             #endregion
 
             var app = builder.Build();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ProfileServiceDBContext>();
+                dbContext.Database.Migrate();
+            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

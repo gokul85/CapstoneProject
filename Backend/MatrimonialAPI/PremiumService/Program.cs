@@ -1,3 +1,5 @@
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using Microsoft.EntityFrameworkCore;
 using PremiumService.AsyncDataService;
 using PremiumService.Data;
@@ -12,7 +14,7 @@ namespace PremiumService
     [ExcludeFromCodeCoverage]
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -27,11 +29,18 @@ namespace PremiumService
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            var kvUri = builder.Configuration.GetConnectionString("keyvaulturi");
+            var clientId = builder.Configuration["Azure_Client_ID"];
+            var client = new SecretClient(new Uri(kvUri), new DefaultAzureCredential(new DefaultAzureCredentialOptions
+            {
+                ManagedIdentityClientId = clientId
+            }));
+            var connectionstring = await client.GetSecretAsync("PremiumServiceConnectionString");
 
             #region context
             builder.Services.AddDbContext<PremiumServiceDBContext>(options =>
             {
-                options.UseSqlServer(builder.Configuration.GetConnectionString("defaultConnection"));
+                options.UseSqlServer(connectionstring.Value.Value);
             });
             #endregion
 
@@ -46,6 +55,12 @@ namespace PremiumService
             #endregion
 
             var app = builder.Build();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<PremiumServiceDBContext>();
+                dbContext.Database.Migrate();
+            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

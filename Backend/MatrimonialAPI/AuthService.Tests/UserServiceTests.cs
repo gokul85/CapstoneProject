@@ -42,6 +42,8 @@ namespace AuthService.Tests
                 .AddInMemoryCollection(new Dictionary<string, string>
                 {
                     { "RabbitMQ:Host", "localhost" },
+                    { "RabbitMQ:Password", "guest" },
+                    { "RabbitMQ:UserName", "guest" },
                     { "RabbitMQ:AuthQueueName", "test_authprofile_queue" }
                 })
                 .Build();

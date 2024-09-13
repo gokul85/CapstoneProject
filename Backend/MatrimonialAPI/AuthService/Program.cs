@@ -10,13 +10,15 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using Azure.Security.KeyVault.Secrets;
+using Azure.Identity;
 
 namespace AuthService
 {
     [ExcludeFromCodeCoverage]
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -49,6 +51,15 @@ namespace AuthService
                     }
                 });
             });
+
+            var kvUri = builder.Configuration.GetConnectionString("keyvaulturi");
+            var clientId = builder.Configuration["Azure_Client_ID"];
+            var client = new SecretClient(new Uri(kvUri), new DefaultAzureCredential(new DefaultAzureCredentialOptions
+            {
+                ManagedIdentityClientId = clientId
+            }));
+            var secret = await client.GetSecretAsync("JWTTokenKey");
+
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters()
@@ -56,15 +67,16 @@ namespace AuthService
                     ValidateIssuer = false,
                     ValidateAudience = false,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["TokenKey:JWT"]))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret.Value.Value)),
                 };
             });
 
+            var connectionstring = await client.GetSecretAsync("AuthServiceConnectionString");
 
             #region context
             builder.Services.AddDbContext<AuthServiceDBContext>(options =>
             {
-                options.UseSqlServer(builder.Configuration.GetConnectionString("defaultConnection"));
+                options.UseSqlServer(connectionstring.Value.Value);
             });
             #endregion
 
@@ -82,6 +94,12 @@ namespace AuthService
             #endregion
 
             var app = builder.Build();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<AuthServiceDBContext>();
+                dbContext.Database.Migrate();
+            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

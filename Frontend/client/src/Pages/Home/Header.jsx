@@ -8,14 +8,12 @@ const Header = () => {
                 <div className="navbar navbar-expand-lg">
                     <div className="container">
                         <Link className="navbar-brand py-2" to="/">
-                            <img src="" alt="Matrimonial App Logo" height="40" />
+                            <a className="navbar-brand text-primary fw-bolder" href="/">Best Matrimony</a>
+                            {/* <img src="" alt="Matrimonial App Logo" height="40" /> */}
                         </Link>
-                        <ul className="navbar-nav ml-auto d-flex align-items-center justify-content-evenly w-100 flex-row">
+                        <ul className="navbar-nav ml-auto d-flex align-items-center justify-content-evenly w-50 flex-row">
                             <li className="nav-item">
                                 <Link className="nav-link text-uppercase fw-bold text-primary" to='/#home'>Home</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link text-uppercase fw-bold text-primary" to='/#happystories'>Happy Stories</Link>
                             </li>
                             <li className="nav-item">
                                 <Link className="nav-link text-uppercase fw-bold text-primary" to='/#contact'>Contact Us</Link>
